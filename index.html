@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>글로벌 Secondary PE 상위 30개사 통합 인텔리전스 대시보드 v1 (2025 FY · 자사 세컨더리 익스포저 재매핑)</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif; background: #f5f6fa; color: #1a1d29; line-height: 1.5; font-size: 14px; }
+.container { max-width: 1480px; margin: 0 auto; padding: 24px 28px 60px; }
+.header { background: linear-gradient(135deg, #2a4858 0%, #3d6b7f 100%); color: #fff; padding: 28px 32px; border-radius: 12px; margin-bottom: 24px; box-shadow: 0 2px 14px rgba(42,72,88,0.12); }
+.header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin-bottom: 6px; }
+.header .subtitle { font-size: 13px; opacity: 0.85; }
+.header .meta { font-size: 12px; opacity: 0.7; margin-top: 12px; }
+.toc { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+.toc a { font-size: 12px; padding: 7px 13px; background: #fff; border: 1px solid #d0d6e2; border-radius: 18px; color: #2a4858; text-decoration: none; font-weight: 500; transition: all 0.15s; }
+.toc a:hover { background: #2a4858; color: #fff; border-color: #2a4858; }
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
+.kpi { background: #fff; padding: 16px 18px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border-left: 3px solid #2a4858; }
+.kpi .label { font-size: 11.5px; color: #5a6378; font-weight: 500; margin-bottom: 6px; }
+.kpi .value { font-size: 22px; font-weight: 700; color: #2a4858; letter-spacing: -0.5px; }
+.kpi .note { font-size: 10.5px; color: #8089a0; margin-top: 4px; }
+.kpi.accent-1 { border-left-color: #2a4858; }
+.kpi.accent-2 { border-left-color: #2c7a7b; }
+.kpi.accent-3 { border-left-color: #b7791f; }
+.kpi.accent-4 { border-left-color: #742a2a; }
+.kpi.accent-5 { border-left-color: #6b46c1; }
+.section { background: #fff; border-radius: 10px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); scroll-margin-top: 20px; }
+.section-title { font-size: 15px; font-weight: 700; color: #2a4858; margin-bottom: 6px; padding-bottom: 10px; border-bottom: 2px solid #e3e7f0; display: flex; align-items: center; justify-content: space-between; }
+.section-title .badge { font-size: 11px; background: #eef2f9; color: #4a5378; padding: 3px 10px; border-radius: 12px; font-weight: 500; }
+.section-source { font-size: 10.5px; color: #8089a0; font-style: italic; margin-bottom: 12px; padding: 4px 8px; background: #fafbfd; border-left: 3px solid #b7791f; border-radius: 0 4px 4px 0; line-height: 1.5; }
+.section-source strong { color: #5a6378; font-style: normal; font-weight: 600; }
+.section-subtitle { font-size: 11.5px; color: #5a6378; margin-bottom: 14px; line-height: 1.6; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.tbl thead th { background: #2a4858; color: #fff; padding: 9px 11px; text-align: left; font-weight: 600; font-size: 11.5px; }
+.tbl thead th.num { text-align: right; }
+.tbl tbody td { padding: 8px 11px; border-bottom: 1px solid #eef2f9; vertical-align: middle; }
+.tbl tbody tr:hover { background: #fafbfd; }
+
+.aum-chart { display: flex; flex-direction: column; gap: 4px; background: #fff; border-radius: 8px; }
+.aum-chart .aum-header { display: grid; grid-template-columns: 38px 220px 1fr 130px 360px; gap: 10px; padding: 10px 12px; background: #2a4858; color: #fff; font-size: 11px; font-weight: 600; border-radius: 6px; }
+.aum-chart .aum-header div:nth-child(3) { text-align: center; }
+.aum-chart .aum-header div:nth-child(4) { text-align: right; }
+.aum-chart .aum-row { display: grid; grid-template-columns: 38px 220px 1fr 130px 360px; gap: 10px; padding: 6px 12px; border-bottom: 1px solid #eef2f9; align-items: center; transition: background 0.1s; }
+.aum-chart .aum-row:hover { background: #fafbfd; }
+.aum-chart .aum-row.invested { background: #fff8e6; border-left: 4px solid #b7791f; padding-left: 8px; }
+.aum-chart .aum-row.invested:hover { background: #fef0d6; }
+.aum-rank { font-weight: 700; color: #2a4858; text-align: center; font-size: 12px; }
+.aum-gp-name { font-weight: 600; color: #2a4858; font-size: 12.5px; line-height: 1.3; }
+.aum-gp-name .en { font-size: 10px; color: #8089a0; font-weight: 400; display: block; margin-top: 1px; }
+.aum-bar-track { position: relative; height: 22px; background: #eef2f9; border-radius: 4px; overflow: visible; }
+.aum-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, #2a4858, #2c7a7b); }
+.aum-bar.tier1 { background: linear-gradient(90deg, #2a4858, #3d6b7f); }
+.aum-bar.tier2 { background: linear-gradient(90deg, #3d6b7f, #2c7a7b); }
+.aum-bar.tier3 { background: linear-gradient(90deg, #2c7a7b, #6fa8a8); }
+.aum-bar.tier4 { background: linear-gradient(90deg, #b7791f, #d4a017); }
+.aum-amount { text-align: right; font-weight: 700; color: #2c7a7b; font-size: 13px; font-variant-numeric: tabular-nums; }
+.aum-exposure { font-size: 11px; line-height: 1.4; }
+.aum-exposure .no-exp { color: #c9d3e3; font-size: 10.5px; font-style: italic; }
+.exp-box { background: #fff; border: 1px solid #b7791f; border-radius: 5px; padding: 5px 9px; display: flex; flex-direction: column; gap: 1px; }
+.exp-box .exp-label { font-size: 9.5px; color: #b7791f; font-weight: 700; letter-spacing: 0.3px; }
+.exp-tag { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 3px; background: #fef3e6; color: #b7791f; font-weight: 600; margin-left: 4px; }
+.exp-tag.indirect { background: #e6f3f3; color: #2c7a7b; }
+.exp-tag.direct { background: #fbe4e4; color: #c0392b; }
+.exp-tag.credit { background: #f0e6f3; color: #6b46c1; }
+
+.rank-cell { font-weight: 700; color: #2a4858; width: 56px; text-align: center; }
+.rank-medal { display: inline-block; width: 26px; height: 26px; border-radius: 50%; text-align: center; line-height: 26px; font-size: 12px; font-weight: 700; }
+.rank-1 { background: linear-gradient(135deg, #d4a017, #b7791f); color: #fff; }
+.rank-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: #fff; }
+.rank-3 { background: linear-gradient(135deg, #b87333, #92400e); color: #fff; }
+.name-cell { font-weight: 600; color: #2a4858; min-width: 200px; }
+.name-en { font-size: 11px; color: #8089a0; font-weight: 400; display: block; margin-top: 2px; }
+.amt-cell { text-align: right; font-weight: 700; color: #2c7a7b; font-variant-numeric: tabular-nums; font-size: 13.5px; }
+.amt-detail { text-align: right; color: #5a6378; font-size: 11px; font-variant-numeric: tabular-nums; }
+.type-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 500; white-space: nowrap; }
+.type-indep { background: #e6e9f5; color: #2a4858; }
+.type-affil { background: #e6f3f3; color: #2c7a7b; }
+.type-listed { background: #fef3e6; color: #b7791f; }
+.change-up { color: #c0392b; font-weight: 600; }
+.change-down { color: #2c7a7b; font-weight: 600; }
+.change-same { color: #8089a0; }
+.bar-bg { background: #eef2f9; height: 6px; border-radius: 3px; margin-top: 4px; overflow: hidden; }
+.bar-fill { height: 100%; background: linear-gradient(90deg, #2a4858, #2c7a7b); border-radius: 3px; }
+.chart-wrap-sm { position: relative; height: 280px; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.heatmap { display: grid; gap: 2px; font-size: 11px; }
+.heatmap .hm-header { display: grid; grid-template-columns: 200px repeat(6, 1fr); gap: 2px; }
+.heatmap .hm-header div { padding: 8px 6px; background: #2a4858; color: #fff; font-weight: 600; text-align: center; font-size: 10.5px; }
+.heatmap .hm-header div:first-child { text-align: left; }
+.heatmap .hm-row { display: grid; grid-template-columns: 200px repeat(6, 1fr); gap: 2px; }
+.heatmap .hm-row > .hm-name { background: #f5f6fa; padding: 8px 10px; font-weight: 600; color: #2a4858; display: flex; align-items: center; font-size: 11.5px; }
+.heatmap .hm-cell { background: #fff; padding: 8px 4px; text-align: center; border: 1px solid #eef2f9; color: #2a2f3e; font-weight: 600; font-size: 11px; }
+.hm-cell.h0 { background: #fff; color: #d0d6e2; }
+.hm-cell.h1 { background: #e6f3f3; color: #2c7a7b; }
+.hm-cell.h2 { background: #b8dcdc; color: #1a4f4f; }
+.hm-cell.h3 { background: #6fa8a8; color: #fff; }
+.hm-cell.h4 { background: #2c7a7b; color: #fff; }
+.hm-cell.h5 { background: #1a4f4f; color: #fff; }
+.strat-badges { display: flex; gap: 4px; flex-wrap: wrap; }
+.strat-badge { font-size: 10px; padding: 2px 7px; border-radius: 9px; font-weight: 500; white-space: nowrap; }
+.strat-lpled { background: #2a4858; color: #fff; }
+.strat-gpled { background: #b7791f; color: #fff; }
+.strat-direct { background: #2c7a7b; color: #fff; }
+.strat-credit { background: #6b46c1; color: #fff; }
+.strat-nav { background: #742a2a; color: #fff; }
+.strat-tech { background: #e6e9f5; color: #2a4858; border: 1px solid #2a4858; }
+.strat-asia { background: #fef3e6; color: #b7791f; border: 1px solid #b7791f; }
+.strat-infra { background: #f0e6f3; color: #6b46c1; border: 1px solid #6b46c1; }
+
+.perf-tbl { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+.perf-tbl thead th { background: #2a4858; color: #fff; padding: 8px 10px; text-align: left; font-weight: 600; font-size: 11px; }
+.perf-tbl thead th.num { text-align: right; }
+.perf-tbl tbody td { padding: 7px 10px; border-bottom: 1px solid #eef2f9; vertical-align: middle; font-variant-numeric: tabular-nums; }
+.perf-tbl tbody tr.gp-row { background: #fafbfd; font-weight: 600; }
+.perf-tbl tbody tr.gp-row td { padding-top: 10px; color: #2a4858; font-size: 12.5px; }
+.perf-tbl .vintage { color: #5a6378; font-size: 10.5px; }
+.perf-tbl .fund-name { font-weight: 600; color: #2a4858; }
+.perf-tbl .num { text-align: right; }
+.perf-irr { font-weight: 700; }
+.perf-irr.high { color: #2c7a7b; }
+.perf-irr.med { color: #b7791f; }
+.perf-irr.low { color: #c0392b; }
+.perf-irr.early { color: #8089a0; font-style: italic; }
+.perf-tag { display: inline-block; font-size: 9.5px; padding: 1px 6px; border-radius: 3px; font-weight: 600; margin-left: 4px; }
+.perf-tag.realized { background: #e6f3f3; color: #2c7a7b; }
+.perf-tag.partial { background: #fff3d9; color: #b7791f; }
+.perf-tag.early { background: #eef2f9; color: #5a6378; }
+
+.cf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.cf-card { background: linear-gradient(135deg, #fff 0%, #fafbfd 100%); border: 1px solid #e3e7f0; border-radius: 8px; padding: 14px 16px; border-left: 4px solid #2c7a7b; }
+.cf-card.lpled { border-left-color: #2a4858; }
+.cf-card.gpled { border-left-color: #b7791f; }
+.cf-card .cf-tag { font-size: 9.5px; padding: 2px 7px; border-radius: 4px; font-weight: 600; display: inline-block; margin-bottom: 6px; }
+.cf-card.lpled .cf-tag { background: #e6e9f5; color: #2a4858; }
+.cf-card.gpled .cf-tag { background: #fef3e6; color: #b7791f; }
+.cf-card .cf-title { font-size: 14px; font-weight: 700; color: #2a4858; }
+.cf-card .cf-gp { font-size: 11px; color: #2c7a7b; font-weight: 600; margin-top: 2px; }
+.cf-card .cf-metric { display: flex; gap: 10px; margin-top: 10px; align-items: baseline; }
+.cf-card .cf-size { font-size: 22px; font-weight: 700; color: #2a4858; letter-spacing: -0.5px; font-variant-numeric: tabular-nums; }
+.cf-card .cf-label { font-size: 10px; color: #5a6378; }
+.cf-card .cf-note { font-size: 11.5px; color: #5a6378; margin-top: 8px; line-height: 1.5; }
+
+.risk-card { background: #fff; border: 1px solid #e3e7f0; border-radius: 8px; padding: 14px 18px; margin-bottom: 10px; border-left: 4px solid #b7791f; }
+.risk-card.red { border-left-color: #c0392b; }
+.risk-card.yellow { border-left-color: #b7791f; }
+.risk-card.info { border-left-color: #5a6378; }
+.risk-card .risk-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.risk-card .risk-gp { font-size: 14px; font-weight: 700; color: #2a4858; }
+.risk-flag { font-size: 10px; padding: 3px 9px; border-radius: 10px; font-weight: 600; white-space: nowrap; }
+.flag-red { background: #fbe4e4; color: #c0392b; border: 1px solid #c0392b; }
+.flag-yellow { background: #fff3d9; color: #b7791f; border: 1px solid #b7791f; }
+.flag-info { background: #eef2f9; color: #5a6378; border: 1px solid #5a6378; }
+.risk-card .risk-body { font-size: 12px; color: #2a2f3e; line-height: 1.55; }
+.risk-card .risk-body strong { color: #2a4858; }
+.fr-prog-wrap { background: #eef2f9; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px; }
+.fr-prog-fill { height: 100%; background: linear-gradient(90deg, #2c7a7b, #2a4858); }
+.fr-status { font-size: 10px; padding: 2px 7px; border-radius: 9px; font-weight: 500; }
+.fr-status.open { background: #e6f3f3; color: #2c7a7b; }
+.fr-status.clos1 { background: #fff3d9; color: #b7791f; }
+.fr-status.target { background: #eef2f9; color: #5a6378; }
+.controls { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.controls input, .controls select { padding: 8px 12px; border: 1px solid #d0d6e2; border-radius: 6px; font-size: 13px; font-family: inherit; background: #fff; color: #1a1d29; }
+.controls input { min-width: 240px; }
+.controls .lbl { font-size: 12px; color: #5a6378; font-weight: 500; }
+.tier-tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.tier-tab { padding: 7px 14px; background: #eef2f9; border: 1px solid transparent; border-radius: 6px; font-size: 12px; font-weight: 500; color: #4a5378; cursor: pointer; transition: all 0.15s; }
+.tier-tab:hover { background: #dde5f0; }
+.tier-tab.active { background: #2a4858; color: #fff; }
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 14px; }
+.card { background: #fff; border: 1px solid #e3e7f0; border-radius: 8px; padding: 16px 18px; transition: all 0.15s; }
+.card.invested { border-left: 4px solid #b7791f; background: #fffdf6; }
+.card:hover { box-shadow: 0 4px 12px rgba(42,72,88,0.08); border-color: #c9d3e3; }
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #eef2f9; }
+.card-rank { font-size: 11px; background: #2a4858; color: #fff; padding: 3px 9px; border-radius: 12px; font-weight: 700; margin-right: 8px; }
+.card-name { font-size: 15px; font-weight: 700; color: #2a4858; margin-bottom: 2px; }
+.card-name-en { font-size: 11px; color: #8089a0; font-weight: 400; }
+.card-aum { text-align: right; flex-shrink: 0; }
+.card-aum .num { font-size: 18px; font-weight: 700; color: #2c7a7b; }
+.card-aum .unit { font-size: 11px; color: #5a6378; }
+.card-section { margin-bottom: 9px; }
+.card-section .label { font-size: 11px; color: #5a6378; font-weight: 600; letter-spacing: 0.3px; margin-bottom: 4px; text-transform: uppercase; }
+.card-section .content { font-size: 12.5px; color: #2a2f3e; line-height: 1.55; }
+.card-section .content strong { color: #2a4858; font-weight: 600; }
+.deals-list { list-style: none; margin-top: 2px; }
+.deals-list li { font-size: 12px; padding: 3px 0; color: #2a2f3e; display: flex; gap: 8px; }
+.deals-list li::before { content: "▸"; color: #8089a0; flex-shrink: 0; }
+.deals-list .deal-name { font-weight: 600; color: #2a4858; }
+.deals-list .deal-meta { color: #5a6378; font-size: 11px; }
+.note-box { background: #fff8e6; border-left: 3px solid #b7791f; padding: 12px 16px; border-radius: 6px; font-size: 12px; color: #4a5378; margin-top: 16px; line-height: 1.6; }
+.note-box strong { color: #2a4858; }
+footer { text-align: center; font-size: 11px; color: #8089a0; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e3e7f0; line-height: 1.7; }
+@media (max-width: 1100px) { .heatmap .hm-header, .heatmap .hm-row { grid-template-columns: 140px repeat(6, 1fr); } .aum-chart .aum-header, .aum-chart .aum-row { grid-template-columns: 32px 160px 1fr 100px 240px; } }
+@media (max-width: 980px) { .kpi-row { grid-template-columns: repeat(2, 1fr); } .two-col, .three-col { grid-template-columns: 1fr; } .card-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <h1>글로벌 Secondary PE 상위 30개사 통합 인텔리전스 대시보드 <span style="font-size:13px; opacity:0.7;">v1 · 2025 FY · 자사 세컨더리 익스포저 재매핑</span></h1>
+  <div class="subtitle">시장 매크로(LP-led/GP-led) · Secondary AUM 리그테이블 · AUM 분포(자사 익스포저) · 전략·유형 프로파일링 · Flagship 성과 · 펀드레이징 트래커 · Continuation Fund Hall of Fame · 리스크 트래커 · GP 상세현황</div>
+  <div class="meta">데이터 기준: 2025 FY 마감 Secondary AUM (전 세컨더리 전략 합산) | 환산 1USD=1,380KRW | 자사 익스포저 기준일: 2026.02.28 raw data | 작성: 2026.05.19</div>
+</div>
+
+<div class="toc">
+  <a href="#macro">① 세컨더리 매크로</a>
+  <a href="#league">② 리그테이블</a>
+  <a href="#aumdist">③ AUM·익스포저</a>
+  <a href="#strategy">④ 전략·유형</a>
+  <a href="#performance">⑤ Flagship 성과</a>
+  <a href="#fundraise">⑥ 펀드레이징</a>
+  <a href="#cfhof">⑦ Continuation HOF</a>
+  <a href="#risk">⑧ 리스크</a>
+  <a href="#detail">⑨ GP 상세</a>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi accent-1"><div class="label">글로벌 세컨더리 시장 (2025 거래량)</div><div class="value">1,850<span style="font-size:13px;color:#5a6378;">억$</span></div><div class="note">Greenhill/Lazard 추정 / +14% YoY</div></div>
+  <div class="kpi accent-2"><div class="label">LP-led vs GP-led mix (2025)</div><div class="value">55<span style="font-size:13px;color:#5a6378;">: 45</span></div><div class="note">LP-led 1,018억 / GP-led 832억</div></div>
+  <div class="kpi accent-3"><div class="label">Top 30 합산 Secondary AUM</div><div class="value">7,200<span style="font-size:13px;color:#5a6378;">억$</span></div><div class="note">시장 AUM 5,200B 중 138% (다전략 중복)</div></div>
+  <div class="kpi accent-4"><div class="label">자사 출자 세컨더리 GP</div><div class="value">4<span style="font-size:13px;color:#5a6378;">개사</span></div><div class="note">Top 30 중 직접 매핑</div></div>
+  <div class="kpi accent-5"><div class="label">자사 세컨더리 PE 약정</div><div class="value">약 579<span style="font-size:13px;color:#5a6378;">억원</span></div><div class="note">PE 전체 2,142억 중 27.0%</div></div>
+</div>
+
+<div class="section" id="macro">
+  <div class="section-title">① 글로벌 Secondary PE 시장 매크로 <span class="badge">2025 FY</span></div>
+  <div class="section-source"><strong>출처:</strong> Greenhill Global Secondary Market Review 2026.Q1 (2026.01) · Lazard Secondary Market Report H2 2025 (2026.02) · Jefferies Global Secondary Market Review 2025 (2026.01) · Setter Capital Volume Report 2025 (2026.01) · Preqin Secondaries Update 2026.Q1</div>
+  <div class="section-subtitle">세컨더리 거래량 1,850억$ 사상 최대 갱신. <strong>GP-led(Continuation Fund) 시장 832억$로 LP-led 1,018억$에 근접</strong>. 2020년 GP-led 점유율 30% → 2025년 45%로 확대. NAV pricing은 LP-led 평균 NAV 대비 93%·GP-led 96%로 회복.</div>
+  <div class="two-col">
+    <div>
+      <h4 style="font-size:12px; color:#5a6378; margin-bottom:8px; font-weight:600;">▣ 글로벌 세컨더리 거래량 추이 (단위: 억USD)</h4>
+      <div class="chart-wrap-sm"><canvas id="macroChart"></canvas></div>
+    </div>
+    <div>
+      <h4 style="font-size:12px; color:#5a6378; margin-bottom:8px; font-weight:600;">▣ LP-led vs GP-led 비중 추이 (%)</h4>
+      <div class="chart-wrap-sm"><canvas id="mixChart"></canvas></div>
+    </div>
+  </div>
+  <div class="three-col" style="margin-top:18px;">
+    <div style="background:#f5f6fa; padding:14px 16px; border-radius:8px;"><div style="font-size:11px;color:#5a6378;font-weight:600;">2025 세컨더리 펀드레이징</div><div style="font-size:22px;font-weight:700;color:#2a4858;margin-top:4px;">약 1,400억$ <span style="font-size:12px;color:#2c7a7b;">▲ +28%</span></div><div style="font-size:10.5px;color:#5a6378;margin-top:4px;">Ardian ASF X(35B)·Lexington XI(20B) 등 메가 클로징</div></div>
+    <div style="background:#f5f6fa; padding:14px 16px; border-radius:8px;"><div style="font-size:11px;color:#5a6378;font-weight:600;">평균 NAV Pricing (2025)</div><div style="font-size:22px;font-weight:700;color:#2a4858;margin-top:4px;">94<span style="font-size:14px;">%</span> of NAV</div><div style="font-size:10.5px;color:#5a6378;margin-top:4px;">LP-led 93% / GP-led 96% / 2023 88% 대비 회복</div></div>
+    <div style="background:#f5f6fa; padding:14px 16px; border-radius:8px;"><div style="font-size:11px;color:#5a6378;font-weight:600;">세컨더리 Dry Powder (2025말)</div><div style="font-size:22px;font-weight:700;color:#2a4858;margin-top:4px;">약 2,100<span style="font-size:13px;">억$</span></div><div style="font-size:10.5px;color:#5a6378;margin-top:4px;">사상 최대, 시장 규모 대비 1.1년치 거래 능력</div></div>
+  </div>
+  <div class="note-box">
+    <strong>2025 세컨더리 시장 핵심 인사이트</strong> ① <strong>GP-led 시장 832억$ (점유율 45%)</strong>: Continuation Fund 신상품 본격 출시 (TA Selects·Hg Saturn·Insight Vision 등). Single-Asset CV가 GP-led의 65% 점유. ② <strong>LP Stake Sale 시장 회복 (CalPERS 등 대형 LP 유동성 확보 매각 증가)</strong>: CalPERS·Texas Teachers·Sweden AP 등 60억$ 이상 portfolio sale 다수. ③ <strong>NAV Financing(=Net Asset Value Lending) 100억$+ 시장 형성</strong>: 17Capital·Whitehorse Liquidity Partners 주도. PE 펀드 NAV 담보 대출, LP 분배 가속화 도구. ④ <strong>Infra·Credit·RE 세컨더리 확장</strong>: Ardian Infra Secondaries·Hamilton Lane Infra Sec·StepStone Infra FoF 등 PE 외 자산군 세컨더리 합산 350억$ AUM. ⑤ <strong>Asia 세컨더리 부상</strong>: TPG NewQuest 11B + Coller HK·SG 확대 + Hahn & Co Korea Continuation 등 Asia GP-led 출범.
+  </div>
+</div>
+
+<div class="section" id="league">
+  <div class="section-title">② 글로벌 Secondary PE 운용사 Secondary AUM 리그테이블 Top 20 <span class="badge">2025 FY 기준</span></div>
+  <div class="section-source"><strong>출처:</strong> Secondaries Investor SI 50 2025 (2025.07 발표) · PEI Secondaries League Table 2025 · 각 GP 2025 Annual Report·10-K·20-F (2026.02~04) · Greenhill GSMR 2026.Q1 · Lazard Secondary Market Report H2 2025</div>
+  <table class="tbl">
+    <thead><tr><th>순위</th><th>운용사 (모회사)</th><th>구분</th><th class="num">Secondary AUM (USD bn)</th><th class="num" style="width:240px;">규모·핵심전략</th><th>전년 대비</th><th>창업자/CEO</th></tr></thead>
+    <tbody id="leagueTableBody"></tbody>
+  </table>
+</div>
+
+<div class="section" id="aumdist">
+  <div class="section-title">③ Secondary AUM 분포 (상위 30개사) · 자사 익스포저 통합 <span class="badge">자사 출자 GP는 <span style="color:#b7791f;">⬛ 강조</span> 표기</span></div>
+  <div class="section-source"><strong>출처:</strong> Secondaries Investor SI 50 2025 · 각 GP 2025 Annual Report·10-K (2026.02~04 발표) · 자사 raw data_202602.XLSX (2026.02.28 기준) · Preqin Secondaries 2026.Q1</div>
+  <div class="section-subtitle">상위 30개사 Secondary AUM 막대 차트와 자사 PE 출자 현황을 한 화면에 매핑. <strong>Ardian 115B$로 표시 공간 한계 → 막대는 60B 수준에서 캡 처리</strong>. 자사 익스포저는 모두 <strong>해외재간접(국내 운용사 모펀드 경유)</strong> 형태이며 세컨더리 펀드만 추출 재매핑.</div>
+  <div class="aum-chart">
+    <div class="aum-header">
+      <div>#</div>
+      <div>운용사</div>
+      <div>Secondary AUM 막대 (USD bn)</div>
+      <div>Secondary AUM</div>
+      <div>자사 익스포저 (모펀드 · 약정/잔액 억원)</div>
+    </div>
+    <div id="aumChartBody"></div>
+  </div>
+  <div class="note-box">
+    <strong>※ 자사 세컨더리 PE 익스포저 산정 기준 (2026.02.28 raw data 기준)</strong><br>
+    1) <span class="exp-tag indirect">재간접</span> 국내 운용사가 운용하는 해외 세컨더리 PE 모펀드 — 보고·이지스(StepStone) / 유진·현대인베스트(Hamilton Lane) / 삼성(Coller) / 유진(Pomona)<br>
+    2) 세컨더리 외 PE FoF·Direct·Credit 펀드는 본 대시보드에서 제외 (글로벌 PE v2 대시보드 참조)<br>
+    3) 자사 세컨더리 출자 합계 <strong>약 579억원</strong>으로 자사 글로벌 PE 약정(2,142억) 중 27.0% 점유. 세컨더리는 자사 PE 출자의 핵심 전략 중 하나.
+  </div>
+</div>
+
+<div class="section" id="strategy">
+  <div class="section-title">④ 전략·유형 프로파일링 (Strategy × Type Exposure) <span class="badge">상위 20개사</span></div>
+  <div class="section-source"><strong>출처:</strong> 각 GP IR 자료·2025 Investor Day · Secondaries Investor SI 50 Strategy Breakdown · 자사 자체 분류 (전략·유형 강도는 자사 PE 자문역량 종합 판단)</div>
+  <div class="section-subtitle">GP별 6대 세컨더리 유형 (LP-led / GP-led·Continuation Fund / Direct Secondaries / Credit Sec. / NAV Financing / Infra·RE Sec.) 노출 강도, 평균 거래 사이즈, 지역 비중.</div>
+  <h4 style="font-size:13px;color:#2a4858;margin:8px 0 10px;font-weight:700;">▣ 상위 20개사 세컨더리 유형별 노출 강도</h4>
+  <div style="overflow-x:auto;"><div class="heatmap" id="heatmap"></div></div>
+  <div style="display:flex; gap:14px; margin-top:10px; font-size:11px; color:#5a6378; align-items:center;">
+    <span>강도:</span>
+    <span class="hm-cell h0" style="padding:3px 8px;">無</span>
+    <span class="hm-cell h1" style="padding:3px 8px;">★</span>
+    <span class="hm-cell h2" style="padding:3px 8px;">★★</span>
+    <span class="hm-cell h3" style="padding:3px 8px;">★★★</span>
+    <span class="hm-cell h4" style="padding:3px 8px;">★★★★</span>
+    <span class="hm-cell h5" style="padding:3px 8px;">★★★★★</span>
+  </div>
+  <h4 style="font-size:13px;color:#2a4858;margin:24px 0 10px;font-weight:700;">▣ GP별 전략 분류 · 평균 거래 사이즈 · 지역 비중</h4>
+  <table class="tbl">
+    <thead><tr><th>운용사</th><th>주력 전략</th><th>평균 거래 사이즈</th><th>지역 (NA/EU/Asia)</th><th>특화 영역</th><th>자사 익스포저</th></tr></thead>
+    <tbody id="strategyTableBody"></tbody>
+  </table>
+  <div class="two-col" style="margin-top:20px;">
+    <div><h4 style="font-size:13px;color:#2a4858;margin:0 0 10px;font-weight:700;">▣ 전략별 GP 분포</h4><div class="chart-wrap-sm"><canvas id="strategyChart"></canvas></div></div>
+    <div><h4 style="font-size:13px;color:#2a4858;margin:0 0 10px;font-weight:700;">▣ 유형별 GP 노출 수</h4><div class="chart-wrap-sm"><canvas id="typeChart"></canvas></div></div>
+  </div>
+</div>
+
+<div class="section" id="performance">
+  <div class="section-title">⑤ Flagship Secondary Fund 성과 트래커 (Net IRR · MOIC · DPI · TVPI) <span class="badge">세컨더리 특화</span></div>
+  <div class="section-source"><strong>출처:</strong> 각 GP 2025 Annual Report·10-K·20-F 펀드별 공시 · Secondaries Investor Performance Watch 2025.Q4 · Preqin Secondaries Performance Analytics 2026.Q1 · 美 공공연금 LP Quarterly (CalPERS·Oregon PERS·CalSTRS 2025.12)</div>
+  <div class="section-subtitle">세컨더리 펀드는 <strong>일반 PE 대비 만기 5~7년(평균 6.5년)·J-Curve 短 (평가 1.0x 진입 12~18개월)</strong> 특성. 따라서 vintage 4~5년 펀드부터 DPI 1.0x 도달이 일반적. Net IRR Top-Quartile 18%+, Median 14~17%, Below-Median 13% 미만.</div>
+  <table class="perf-tbl">
+    <thead><tr><th style="width:18%;">운용사 / Flagship</th><th style="width:9%;">Vintage</th><th class="num" style="width:11%;">Fund Size</th><th class="num" style="width:10%;">Net IRR</th><th class="num" style="width:10%;">Net MOIC</th><th class="num" style="width:9%;">DPI</th><th class="num" style="width:9%;">TVPI</th><th style="width:24%;">비고</th></tr></thead>
+    <tbody id="perfTableBody"></tbody>
+  </table>
+  <div class="note-box">
+    <strong>세컨더리 펀드 성과 해석 가이드</strong> ① 일반 PE 대비 <strong>J-Curve 짧고 만기 단축</strong>으로 Net IRR은 13~18% 분포 (Mega Buyout 15~25% 대비 낮음). ② 대신 <strong>DPI 회수 속도가 빠름</strong> (vintage 5년+ 펀드 DPI 평균 1.0x+). ③ <strong>LP-led 세컨더리</strong>는 안정적·예측 가능 (NAV 협상 핵심). <strong>GP-led / Continuation Fund</strong>는 IRR 변동성 큼 (성장 GP 추적 가능 시 20%+, 부진 시 10% 미만). ④ <strong>NAV Financing 펀드</strong>(17Cap·Whitehorse)는 Credit-like 수익률 9~12% Net IRR. <span style="color:#2c7a7b;font-weight:600;">녹색</span>=Top-Quartile, <span style="color:#b7791f;font-weight:600;">황색</span>=Median, <span style="color:#c0392b;font-weight:600;">적색</span>=Below-Median, <span style="color:#8089a0;font-style:italic;">회색</span>=Early. 실제 출자심사 시 최신 LP Report 재확인 필수.
+  </div>
+</div>
+
+<div class="section" id="fundraise">
+  <div class="section-title">⑥ 펀드레이징 라이브 트래커 <span class="badge">2025~2026 모집</span></div>
+  <div class="section-source"><strong>출처:</strong> Secondaries Investor Fundraising Wire 2026.Q1 · PEI Fundraising Tracker · 각 GP 보도자료 (2025.10~2026.04) · Buyouts Insider</div>
+  <div class="section-subtitle">2025~2026년 모집 중이거나 1차 클로징을 마친 메가 세컨더리 블라인드 펀드. 자사 출자 검토 대상 GP 추적용.</div>
+  <table class="tbl">
+    <thead><tr><th>운용사</th><th>펀드명/호수</th><th class="num">목표 사이즈</th><th class="num">진척률</th><th>주요 전략·지역</th><th>상태</th></tr></thead>
+    <tbody id="fundraiseTableBody"></tbody>
+  </table>
+</div>
+
+<div class="section" id="cfhof">
+  <div class="section-title">⑦ Continuation Fund / LP Stake Sale Hall of Fame <span class="badge">최근 5년 메가 거래</span></div>
+  <div class="section-source"><strong>출처:</strong> Secondaries Investor Deal Database 2020~2025 · Reuters PE Deals · Bloomberg PE Secondaries · 각 운용 GP 보도자료 · Greenhill·Lazard·Evercore Secondary Advisory Reports</div>
+  <div class="section-subtitle">최근 5년간 글로벌 메가 Continuation Fund(GP-led) 및 LP Stake Sale(LP-led) 사례. 시장 트렌드 추적 및 GP-led 평가 참고용.</div>
+  <div class="cf-grid" id="cfHofGrid"></div>
+</div>
+
+<div class="section" id="risk">
+  <div class="section-title">⑧ 세컨더리 리스크 트래커 <span class="badge">LP 실사 체크리스트</span></div>
+  <div class="section-source"><strong>출처:</strong> SEC EDGAR (Form ADV·8-K) · ILPA Secondary Best Practices 2024 · ILPA GP-led Secondary Guidance · Bloomberg Litigation Tracker · Reuters · Wall Street Journal · 자사 자체 종합</div>
+  <div class="section-subtitle">공개 보도된 GP 관련 분쟁·제재·실적 부진·핵심인력 이슈 + 세컨더리 특화 리스크 (NAV pricing·GP-led conflict·NAV financing 신용리스크). 출자심사 시 추가 확인 필요.</div>
+  <div id="riskList"></div>
+</div>
+
+<div class="section" id="detail">
+  <div class="section-title">⑨ Secondary PE 운용사 상세 카드 <span class="badge">자사 출자 GP <span style="color:#b7791f;">⬛ 강조</span></span></div>
+  <div class="section-source"><strong>출처:</strong> 각 GP 공식 웹사이트 (Leadership 페이지) · LinkedIn (Senior Executives) · Bloomberg Executive Profiles · 각 GP 2025 Annual Report 인력 섹션 · 보도자료 (2024~2025)</div>
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="운용사명·창업자·핵심전략으로 검색...">
+    <span class="lbl">정렬:</span>
+    <select id="sortSelect">
+      <option value="rank">순위순</option>
+      <option value="aum">AUM 큰 순</option>
+      <option value="exposure">자사 익스포저 큰 순</option>
+      <option value="name">운용사명 가나다순</option>
+    </select>
+  </div>
+  <div class="tier-tabs">
+    <div class="tier-tab active" data-tier="all">전체 30</div>
+    <div class="tier-tab" data-tier="invested">자사 출자 GP만</div>
+    <div class="tier-tab" data-tier="tier1">Tier 1 (1~10위, 30B+)</div>
+    <div class="tier-tab" data-tier="tier2">Tier 2 (11~20위, 10~30B)</div>
+    <div class="tier-tab" data-tier="tier3">Tier 3 (21~30위, <10B)</div>
+  </div>
+  <div class="card-grid" id="cardGrid"></div>
+</div>
+
+<footer>
+  본 자료는 공개된 Secondaries Investor SI 50·PEI·Greenhill·Lazard·각 GP 공시·언론보도와 자사 내부 Alternative Monitoring 자료를 결합한 참고자료이며, 투자판단의 근거자료가 아닙니다.<br>
+  주요 출처: Secondaries Investor SI 50 2025 (2025.07) · Greenhill Global Secondary Market Review 2026.Q1 · Lazard Secondary Market Report H2 2025 · Jefferies GSMR 2025 · Preqin Secondaries 2026.Q1 · 각 GP 2025 Annual Report/10-K (2026.02~04) · Bloomberg · Reuters · Pitchbook · 자사 raw data_202602.XLSX
+</footer>
+
+</div>
+
+<script>
+// ============= EXPOSURE DATA (Secondary 부문만 추출) =============
+const exposureData = {
+  5: { type:"indirect", funds:[
+      {name:"보고 글로벌 세컨더리 PE 3호 (StepStone)", commit:23.4, balance:6.5, cat:"세컨더리"},
+      {name:"이지스 스텝스톤 세컨더리 5호", commit:129.1, balance:80.0, cat:"세컨더리"}
+    ] },
+  9: { type:"indirect", funds:[
+      {name:"유진 해밀턴레인 세컨더리 펀드 1호", commit:55.2, balance:30.0, cat:"세컨더리"},
+      {name:"현대인베스트 해밀턴레인 세컨더리 PE VI", commit:129.3, balance:80.0, cat:"세컨더리"}
+    ] },
+  10: { type:"indirect", funds:[{name:"삼성 CIP IX (Coller 세컨더리 9호)", commit:129.5, balance:80.0, cat:"세컨더리"}] },
+  13: { type:"indirect", funds:[{name:"유진 포모나 세컨더리 전문투자형 1호", commit:112.5, balance:65.0, cat:"세컨더리"}] }
+};
+function totalCommit(rank) { const e=exposureData[rank]; if(!e) return 0; return e.funds.reduce((s,f)=>s+f.commit,0); }
+function totalBalance(rank) { const e=exposureData[rank]; if(!e) return 0; return e.funds.reduce((s,f)=>s+f.balance,0); }
+const expTypeMap = { indirect:{cls:"indirect",label:"재간접"}, direct:{cls:"direct",label:"직접"}, credit:{cls:"credit",label:"사모대출"} };
+
+// ============= Macro Charts =============
+new Chart(document.getElementById('macroChart'), {
+  type: 'bar',
+  data: { labels: ['2020','2021','2022','2023','2024','2025'],
+    datasets: [
+      { label:'LP-led', data:[40,72,71,60,87,102], backgroundColor:'#2a4858', stack:'a' },
+      { label:'GP-led', data:[20,60,37,52,75,83], backgroundColor:'#b7791f', stack:'a' }
+    ] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{size:10}}}}, scales:{ y:{stacked:true, beginAtZero:true, grid:{color:'#eef2f9'}, ticks:{callback:v=>v+'B'}}, x:{stacked:true, grid:{display:false}}}}
+});
+new Chart(document.getElementById('mixChart'), {
+  type: 'line',
+  data: { labels: ['2020','2021','2022','2023','2024','2025'],
+    datasets: [
+      { label:'LP-led 비중 (%)', data:[67,55,66,54,54,55], borderColor:'#2a4858', backgroundColor:'rgba(42,72,88,0.1)', fill:false, tension:0.3, borderWidth:2, pointRadius:5, pointBackgroundColor:'#2a4858' },
+      { label:'GP-led 비중 (%)', data:[33,45,34,46,46,45], borderColor:'#b7791f', backgroundColor:'rgba(183,121,31,0.1)', fill:false, tension:0.3, borderWidth:2, pointRadius:5, pointBackgroundColor:'#b7791f' }
+    ] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{position:'bottom', labels:{font:{size:10}}}}, scales:{y:{beginAtZero:true, max:100, grid:{color:'#eef2f9'}, ticks:{callback:v=>v+'%'}}, x:{grid:{display:false}}}}
+});
+
+// ============= League Table (Top 20) =============
+const leagueData = [
+  { rank:1, prev:1, name:"Ardian", nameEn:"Ardian France SA", type:"eu-indep", aum_b:115, aum_display:"115 bn$", aum_detail:"세컨더리 글로벌 1위 / Direct PE·Infra·Credit 합산 160B 그룹", chief:"Dominique Senequier (Founder·President)" },
+  { rank:2, prev:2, name:"BX Strategic Partners", nameEn:"Blackstone Strategic Partners", type:"us-affil", aum_b:93, aum_display:"93 bn$", aum_detail:"Blackstone 산하. 2013 Credit Suisse Customized Fund Investment 인수", chief:"Verdun Perry (Head of BX Strategic Partners)" },
+  { rank:3, prev:3, name:"Lexington Partners", nameEn:"Lexington Partners LP", type:"us-affil", aum_b:82, aum_display:"82 bn$", aum_detail:"Franklin Templeton 산하 (2022 17.5억$ 인수). 1994 설립", chief:"Wil Warren (President·Chief Investment Officer)" },
+  { rank:4, prev:4, name:"HarbourVest", nameEn:"HarbourVest Partners", type:"us-indep", aum_b:54, aum_display:"54 bn$ (Sec.)", aum_detail:"그룹 130B 중 세컨더리 부문. Dover Street 시리즈 + HarbourVest Partners", chief:"Peter Wilson·John Begg (Co-Heads Secondary)" },
+  { rank:5, prev:6, name:"StepStone", nameEn:"StepStone Group (Sec. 부문)", type:"us-listed", aum_b:50, aum_display:"50 bn$ (Sec.)", aum_detail:"그룹 189B 중 세컨더리. 2007 PCG 분사", chief:"Scott Hart (CEO Group)·Mark Maruszewski (Head of Sec.)" },
+  { rank:6, prev:5, name:"Goldman Vintage", nameEn:"Goldman Sachs Vintage Funds", type:"us-affil", aum_b:50, aum_display:"50 bn$", aum_detail:"Goldman Sachs Asset Management 산하. 1998 출범", chief:"Harold Hope (Global Head of Sec. at GSAM)" },
+  { rank:7, prev:7, name:"AlpInvest", nameEn:"AlpInvest Partners", type:"eu-affil", aum_b:42, aum_display:"42 bn$ (Sec.)", aum_detail:"Carlyle 산하 (2011 60% 인수→2013 100%). 그룹 90B 중 세컨더리", chief:"Wouter Moerel·Daan Knottenbelt (Co-MPs)" },
+  { rank:8, prev:8, name:"NB Secondaries", nameEn:"Neuberger Berman Secondaries", type:"us-indep", aum_b:40, aum_display:"40 bn$ (Sec.)", aum_detail:"NB Alternatives (130B) 중 세컨더리. NB Crossroads 시리즈", chief:"Tristram Perkins (Global Co-Head of Secondaries)" },
+  { rank:9, prev:9, name:"Hamilton Lane Sec.", nameEn:"Hamilton Lane Inc. (Sec. 부문)", type:"us-listed", aum_b:40, aum_display:"40 bn$ (Sec.)", aum_detail:"그룹 138B 중 세컨더리. 1991 PA 설립, 2017 Nasdaq 상장", chief:"Erik Hirsch·Juan Delgado-Moreira (Co-CEO Group)·Tom Kerr (Head Sec.)" },
+  { rank:10, prev:10, name:"Coller Capital", nameEn:"Coller Capital Limited", type:"eu-indep", aum_b:35, aum_display:"35 bn$", aum_detail:"세컨더리 단일 글로벌 1세대. 1990 런던 설립", chief:"Jeremy Coller (Chairman·CIO)·Stephen Ziff (Partner)" },
+  { rank:11, prev:11, name:"Pantheon", nameEn:"Pantheon Ventures", type:"us-affil", aum_b:32, aum_display:"32 bn$", aum_detail:"Affiliated Managers Group(AMG) 산하. 1982 런던 설립", chief:"Paul Ward (CEO·MP)·Andrea Carnelli (Head of Sec.)" },
+  { rank:12, prev:12, name:"ICG Strategic Eq.", nameEn:"Intermediate Capital Group", type:"eu-listed", aum_b:25, aum_display:"25 bn$ (Sec.)", aum_detail:"ICG plc (LSE 상장) 산하. 그룹 95B 중 세컨더리", chief:"Andrew Hawkins (Head of Strategic Equity)" },
+  { rank:13, prev:13, name:"Pomona Capital", nameEn:"Pomona Capital", type:"us-indep", aum_b:16, aum_display:"16 bn$", aum_detail:"세컨더리 단일. 1994 NY 설립. 'Pomona Capital' 펀드 시리즈", chief:"Michael Granoff (Founder·CEO)" },
+  { rank:14, prev:14, name:"Adams Street Sec.", nameEn:"Adams Street Partners (Sec. 부문)", type:"us-indep", aum_b:15, aum_display:"15 bn$ (Sec.)", aum_detail:"그룹 66B 중 세컨더리. 1972 시카고 설립, 100% 직원 보유", chief:"Jeffrey Diehl (MP Group)·Brian Murphy (Head Sec.)" },
+  { rank:15, prev:15, name:"Glendower Capital", nameEn:"Glendower Capital LLP", type:"eu-affil", aum_b:14, aum_display:"14 bn$", aum_detail:"CVC 산하 (2021 인수). London 본사, 세컨더리 단일", chief:"Charles Smith (Founder·MP)·Carlo Pirzio-Biroli (MP)" },
+  { rank:16, prev:16, name:"Capital Dynamics", nameEn:"Capital Dynamics", type:"eu-indep", aum_b:12, aum_display:"12 bn$ (Sec.)", aum_detail:"그룹 14B 중 세컨더리 중심. Swiss Zug 본사 1988", chief:"Martin Hahn (CEO)" },
+  { rank:17, prev:17, name:"TPG NewQuest", nameEn:"TPG NewQuest Capital Partners", type:"us-affil", aum_b:11, aum_display:"11 bn$", aum_detail:"TPG 산하 (2018 인수). <strong>Asia 세컨더리 단일 1위</strong>", chief:"Min Lin·Darren Massara (Co-MPs)" },
+  { rank:18, prev:18, name:"Whitehorse", nameEn:"Whitehorse Liquidity Partners", type:"us-indep", aum_b:11, aum_display:"11 bn$ (NAV)", aum_detail:"<strong>NAV Financing 단일 글로벌 1위</strong>. 2015 Toronto 설립", chief:"Yann Robard (Founder·MP)" },
+  { rank:19, prev:19, name:"17Capital", nameEn:"17Capital LLP", type:"eu-indep", aum_b:9, aum_display:"9 bn$ (NAV)", aum_detail:"NAV Financing 단일. 2008 London 설립, Oaktree 일부 지분", chief:"Pierre-Antoine de Selancy (Founder·MP)" },
+  { rank:20, prev:20, name:"Industry Ventures", nameEn:"Industry Ventures LLC", type:"us-indep", aum_b:8, aum_display:"8 bn$ (Tech Sec.)", aum_detail:"<strong>Tech·VC 세컨더리 단일 1위</strong>. 2000 SF 설립", chief:"Hans Swildens (Founder·CEO)" }
+];
+const typeMap = {
+  "us-indep":{cls:"type-indep", label:"美 독립계"},
+  "eu-indep":{cls:"type-indep", label:"EU 독립계"},
+  "us-affil":{cls:"type-affil", label:"美 자회사"},
+  "eu-affil":{cls:"type-affil", label:"EU 자회사"},
+  "us-listed":{cls:"type-listed", label:"美 상장"},
+  "eu-listed":{cls:"type-listed", label:"EU 상장"}
+};
+const maxLeagueAmt = Math.max(...leagueData.map(d=>d.aum_b));
+document.getElementById('leagueTableBody').innerHTML = leagueData.map(d=>{
+  let rk = d.rank===1?`<span class="rank-medal rank-1">1</span>`:d.rank===2?`<span class="rank-medal rank-2">2</span>`:d.rank===3?`<span class="rank-medal rank-3">3</span>`:d.rank;
+  const df=d.prev-d.rank;
+  const ch = df>0?`<span class="change-up">▲ ${df}</span>`:df<0?`<span class="change-down">▼ ${Math.abs(df)}</span>`:`<span class="change-same">—</span>`;
+  const t = typeMap[d.type];
+  const bw = (d.aum_b/maxLeagueAmt*100).toFixed(1);
+  return `<tr><td class="rank-cell">${rk}</td><td class="name-cell">${d.name}<span class="name-en">${d.nameEn}</span></td><td><span class="type-badge ${t.cls}">${t.label}</span></td><td class="amt-cell">${d.aum_display}<br><span class="amt-detail">전년 ${d.prev}위</span></td><td><div class="bar-bg"><div class="bar-fill" style="width:${bw}%"></div></div><div class="amt-detail" style="text-align:left; margin-top:3px;">${d.aum_detail}</div></td><td style="text-align:center;font-size:11px;">${ch}</td><td style="font-size:11.5px;">${d.chief}</td></tr>`;
+}).join('');
+
+// ============= PE Data (30 firms) =============
+const peData = [
+  { rank:1, name:"Ardian", nameEn:"Ardian France SA", aum:115, aumDisplay:"115 bn$", aumNote:"세컨더리 글로벌 1위 110B + Mosaic Co-Invest 등 별도. 1996 AXA Private Equity 출범 → 2013 Ardian 독립", founder:"Dominique Senequier (1996)", ceo:"Dominique Senequier (Founder·President)·Vincent Gombault (Senior MD Sec.)", keyPeople:["Dominique Senequier Founder President","Vincent Gombault Senior MD Sec.","Mathias Burghardt MD Infra","Olivier Decannière Country Head NA"], deals:[{name:"ASF VIII",year:"2020",note:"19B 클로징 세컨더리 사상 최대 (당시)"},{name:"ASF IX",year:"2024",note:"30B 클로징, 시리즈 최대"},{name:"ASF X",year:"2026 모집중",note:"35B 목표, 세컨더리 사상 최대"},{name:"Mubadala LP Stake",year:"2023",note:"21억$ Mubadala 포트폴리오 매입"},{name:"CalPERS Portfolio (rumored)",year:"2024~2025",note:"수십억$ LP Stake Sale 인수 후보"}], tier:"tier1" },
+  { rank:2, name:"BX Strategic Partners", nameEn:"Blackstone Strategic Partners", aum:93, aumDisplay:"93 bn$", aumNote:"Blackstone 산하 세컨더리. 2013 Credit Suisse Customized Fund Investment Group 인수로 출범. Strategic Partners (PE Sec.) + SP RE + SP Infra 3-전략", founder:"Credit Suisse Customized Fund Group (1996 출범) → 2013 Blackstone 인수", ceo:"Verdun Perry (Head of BX Strategic Partners)·Vinod Mukhi (Senior MD)", keyPeople:["Verdun Perry Head","Vinod Mukhi Senior MD","Mike Ellsworth Senior MD","Boyd Schoenbeck Senior MD"], deals:[{name:"SP VIII",year:"2019",note:"11.1B 클로징"},{name:"SP IX",year:"2023",note:"25B 클로징 세컨더리 시리즈 최대"},{name:"SP Real Estate III",year:"2022",note:"4.5B RE 세컨더리"},{name:"SP Infra II",year:"2024",note:"4B 인프라 세컨더리 출범"},{name:"GP-led 다수",year:"지속",note:"GP-led 시장 Top 3"}], tier:"tier1" },
+  { rank:3, name:"Lexington Partners", nameEn:"Lexington Partners LP", aum:82, aumDisplay:"82 bn$", aumNote:"Franklin Templeton 산하 (2022 17.5억$ 인수). 1994 NY 설립. LP-led 세컨더리 단일 특화 (Lexington Capital Partners 시리즈)", founder:"Brent Nicklas (1994, 前 Landmark Partners) → 2022 Franklin Templeton 자회사", ceo:"Wil Warren (President·CIO)·Lou Marinaccio (Senior MP)", keyPeople:["Wil Warren President CIO","Lou Marinaccio Senior MP","Pål Ristvedt Co-Senior Partner","Brent Nicklas Founder Senior Advisor"], deals:[{name:"Lexington IX",year:"2020",note:"14B 클로징"},{name:"Lexington X",year:"2023",note:"22.7B 클로징 시리즈 최대 (당시 세컨더리 사상 최대)"},{name:"Co-Investment Fund VI",year:"2023",note:"4.8B"},{name:"Lexington XI",year:"2025 모집중",note:"25B 목표"},{name:"Middle Market Investors V",year:"2022",note:"2.7B 미들마켓"}], tier:"tier1" },
+  { rank:4, name:"HarbourVest", nameEn:"HarbourVest Partners LP", aum:54, aumDisplay:"54 bn$ (Sec.)", aumNote:"그룹 총 130B 중 세컨더리. 1982 Boston 설립 (John Hancock 분사). Direct·Primary·Secondary 3-전략 통합", founder:"D. Brooks Zug·Edward W. Kane (1982, John Hancock 분사)", ceo:"Peter Wilson·John Begg (Co-Heads Secondary)·John Toomey (CEO Group)", keyPeople:["Peter Wilson Co-Head Sec.","John Begg Co-Head Sec.","John Toomey CEO Group","Tim Flower MD Sec."], deals:[{name:"Dover IX",year:"2018",note:"3B 클로징"},{name:"Dover X",year:"2022",note:"4.5B 클로징 시리즈 최대"},{name:"HarbourVest Partners XI",year:"2020",note:"3.6B"},{name:"Mubadala JV (Asia 세컨더리)",year:"2022",note:"2.5억$ Mubadala 합작"},{name:"GP-led 다수",year:"지속",note:"Single-Asset CV Top 5"}], tier:"tier1" },
+  { rank:5, name:"StepStone", nameEn:"StepStone Group Inc. (Sec. 부문)", aum:50, aumDisplay:"50 bn$ (Sec.)", aumNote:"그룹 총 189B 중 세컨더리 부문. 2007 Pacific Corporate Group 분사. PE FoF + 세컨더리 + 코인베스트 글로벌 1세대", founder:"Monte Brem·Tom Keck·Johnny Randel·Jose Fernandez (2007)", ceo:"Scott Hart (CEO Group 2022.04~)·Mark Maruszewski (Head of Sec.)·Monte Brem (Chair)", keyPeople:["Scott Hart CEO Group","Mark Maruszewski Head Sec.","Monte Brem Chair","Jose Fernandez Co-COO"], deals:[{name:"StepStone Secondary IV",year:"2020",note:"2.4B 클로징"},{name:"StepStone Secondary V",year:"2024",note:"5B 클로징 (GP-led 중심)"},{name:"StepStone Secondary VI",year:"2026 모집중",note:"7B 목표"},{name:"Greenspring Sec. 통합",year:"2021",note:"VC 세컨더리 부문 강화"},{name:"GP-led Continuation 1세대",year:"지속",note:"Continuation Fund 시장 Top 3"}], tier:"tier1" },
+  { rank:6, name:"Goldman Vintage", nameEn:"Goldman Sachs Vintage Funds", aum:50, aumDisplay:"50 bn$", aumNote:"Goldman Sachs Asset Management 산하. 1998 출범. PE Sec. + Direct Co-Invest + RE Sec.", founder:"Goldman Sachs Asset Mgmt (1998)", ceo:"Harold Hope (Global Head of Sec. at GSAM)·Christopher Kojima (Senior MD)", keyPeople:["Harold Hope Global Head Sec.","Christopher Kojima Senior MD","Sean Brenan MD","Jennifer Choi MD"], deals:[{name:"Vintage Fund VIII",year:"2019",note:"10.3B 클로징"},{name:"Vintage Fund IX",year:"2024",note:"14.2B 클로징"},{name:"GP-led 메가 다수",year:"지속",note:"Single-Asset CV 시장 Top 5"},{name:"Real Estate Sec.",year:"지속",note:"RE 세컨더리 별도"},{name:"Direct Co-Invest",year:"지속",note:"Goldman 시너지"}], tier:"tier1" },
+  { rank:7, name:"AlpInvest", nameEn:"AlpInvest Partners", aum:42, aumDisplay:"42 bn$ (Sec.)", aumNote:"Carlyle 산하 (2011 60% 인수→2013 100%). 그룹 90B 중 세컨더리 부문. 1999 APG·PGGM 합작 출범", founder:"APG (네덜란드 ABP)·PGGM (1999 합작) → 2011 Carlyle 인수", ceo:"Wouter Moerel·Daan Knottenbelt (Co-MPs)", keyPeople:["Wouter Moerel Co-MP","Daan Knottenbelt Co-MP","Volkert Doeksen 前 CEO Senior Advisor","Tjarko Hektor Senior Partner"], deals:[{name:"AlpInvest Sec. Fund VII",year:"2020",note:"7.5B 클로징"},{name:"AlpInvest Sec. Fund VIII",year:"2024",note:"8B 클로징"},{name:"Mubadala Capital Sec.",year:"2024",note:"10억$ Mubadala 포트폴리오 인수"},{name:"GP-led 다수",year:"지속",note:"Continuation Fund Top 5"},{name:"APG·PGGM Anchor LP",year:"지속",note:"네덜란드 연금 캡티브 LP"}], tier:"tier1" },
+  { rank:8, name:"NB Secondaries", nameEn:"Neuberger Berman Secondaries", aum:40, aumDisplay:"40 bn$ (Sec.)", aumNote:"NB Alternatives (130B) 중 세컨더리 부문. NB Crossroads 시리즈 + Direct Sec. + GP-led", founder:"Neuberger Berman (1939) / Sec. 부문은 1987~", ceo:"Tristram Perkins (Global Co-Head of Sec.)·Ethan Falkove (Co-Head)", keyPeople:["Tristram Perkins Co-Head","Ethan Falkove Co-Head","Anthony Tutrone Global Head Alts","Brien Smith COO Alts"], deals:[{name:"NB Crossroads XX",year:"2018",note:"5B 클로징"},{name:"NB Crossroads XXI",year:"2022",note:"7B 클로징"},{name:"NB Crossroads XXII",year:"2024 모집중",note:"6B 목표"},{name:"NB Strategic Capital",year:"2024",note:"5B GP Capital Solutions"},{name:"GP-led Continuation",year:"지속",note:"Single-Asset CV 다수"}], tier:"tier1" },
+  { rank:9, name:"Hamilton Lane Sec.", nameEn:"Hamilton Lane Inc. (Sec. 부문)", aum:40, aumDisplay:"40 bn$ (Sec.)", aumNote:"그룹 총 138B 중 세컨더리. 1991 PA 설립, 2017 Nasdaq:HLNE 상장. 2024 Co-CEO 전환", founder:"Leslie Brun·Mario Giannini (1991)", ceo:"Erik Hirsch·Juan Delgado-Moreira (Co-CEO Group)·Tom Kerr (Head of Sec.)", keyPeople:["Erik Hirsch Co-CEO Group","Juan Delgado-Moreira Co-CEO Group","Tom Kerr Head Sec.","Hartley Rogers Chairman"], deals:[{name:"HL Secondary V",year:"2020",note:"3.9B 클로징"},{name:"HL Secondary VI",year:"2024",note:"3.9B 클로징"},{name:"Direct Co-Investment V",year:"2022",note:"3.1B"},{name:"HL Infra Secondaries",year:"2024",note:"인프라 세컨더리 출범"},{name:"Tokenization (HL Tokens)",year:"2023~",note:"Securitize와 PE 토큰화"}], tier:"tier1" },
+  { rank:10, name:"Coller Capital", nameEn:"Coller Capital Limited", aum:35, aumDisplay:"35 bn$", aumNote:"세컨더리 단일 글로벌 1세대. 1990 런던 설립. LP-led + GP-led Continuation + Credit Secondaries 3-전략", founder:"Jeremy Coller (1990)", ceo:"Jeremy Coller (Chairman·CIO)·Stephen Ziff (Partner)", keyPeople:["Jeremy Coller Chairman CIO","Stephen Ziff Partner","Adam Black Head of ESG","Hani El-Khoury Head of Asia"], deals:[{name:"Coller IP VIII",year:"2020",note:"9B 클로징"},{name:"Coller IP IX",year:"2024",note:"14B 목표 1차 클로징 8B"},{name:"Coller Credit Secondaries I",year:"2023",note:"Credit 세컨더리 1.4B"},{name:"Asia Sec. Expansion",year:"2023~",note:"HK·SG 사무소 신설"},{name:"GP-led Continuation 시장 주도",year:"지속",note:"세컨더리 글로벌 Top 5"}], tier:"tier1" },
+  { rank:11, name:"Pantheon", nameEn:"Pantheon Ventures", aum:32, aumDisplay:"32 bn$ (Sec.)", aumNote:"Affiliated Managers Group(AMG) 산하 (2010 인수). 1982 런던 설립. PE FoF + Sec. + Infra Sec.", founder:"Rod Selkirk 외 (1982 런던) → 2010 AMG 인수", ceo:"Paul Ward (CEO·MP 2018~)·Andrea Carnelli (Head of Sec.)", keyPeople:["Paul Ward CEO MP","Andrea Carnelli Head Sec.","Jeff Miller Head Co-Invest","Susan Long McAndrews President NA"], deals:[{name:"Pantheon Global Sec. VI",year:"2018",note:"2.2B"},{name:"Pantheon Global Sec. VII",year:"2024",note:"3.5B 목표"},{name:"Pantheon Infra Sec.",year:"2022",note:"인프라 세컨더리 별도"},{name:"GP-led Continuation 다수",year:"지속",note:"미들·라지 Single-Asset CV"},{name:"Asia·Tech Sec.",year:"확대",note:"전 지역·자산군 확장"}], tier:"tier2" },
+  { rank:12, name:"ICG Strategic Eq.", nameEn:"Intermediate Capital Group plc", aum:25, aumDisplay:"25 bn$ (Sec.)", aumNote:"ICG plc (LSE 상장, FTSE 100) 산하 Strategic Equity 부문. 그룹 95B 중 세컨더리·GP-led 단일", founder:"Intermediate Capital Group (1989 메자닌 출범) / Strategic Equity는 2016~", ceo:"Andrew Hawkins (Head of Strategic Equity)·Benoit Durteste (ICG CEO)", keyPeople:["Andrew Hawkins Head SE","Ricardo Lombardi Co-Head","Benoit Durteste ICG CEO","Vijay Bharadia MD"], deals:[{name:"ICG Strategic Equity IV",year:"2022",note:"5.5B 클로징 (당시 GP-led 시리즈 최대)"},{name:"ICG Strategic Equity V",year:"2025 모집중",note:"7B 목표"},{name:"Single-Asset CV 다수",year:"지속",note:"GP-led Single-Asset 시장 Top 3"},{name:"Hg Saturn Co-Invest",year:"2021",note:"메가 GP-led 참여"},{name:"Cinven Continuation",year:"2024",note:"GP-led 참여"}], tier:"tier2" },
+  { rank:13, name:"Pomona Capital", nameEn:"Pomona Capital", aum:16, aumDisplay:"16 bn$", aumNote:"세컨더리 단일. 1994 NY 설립 (Hutton Capital Management 분사). 'Pomona Capital' 시리즈 + Pomona Investment Fund (interval fund)", founder:"Michael Granoff (1994)", ceo:"Michael Granoff (Founder·CEO)", keyPeople:["Michael Granoff Founder CEO","Andrew Wilkinson Senior Partner","David Smith Senior Partner","Mike Hacker Senior Partner"], deals:[{name:"Pomona Capital IX",year:"2018",note:"1.8B 클로징"},{name:"Pomona Capital X",year:"2022",note:"2.2B 클로징"},{name:"Pomona Investment Fund",year:"지속",note:"Interval Fund (Retail LP) 5B"},{name:"중소형 LP-led 다수",year:"지속",note:"미들마켓 LP Stake Sale 특화"},{name:"Pomona Capital XI",year:"2025 모집중",note:"2.5B 목표"}], tier:"tier2" },
+  { rank:14, name:"Adams Street Sec.", nameEn:"Adams Street Partners (Sec. 부문)", aum:15, aumDisplay:"15 bn$ (Sec.)", aumNote:"그룹 총 66B 중 세컨더리. 1972 시카고 설립, 50+ 년 업력. 100% 직원 보유", founder:"Bruce Adams·Tom Adams (1972, Brinson Partners 분사)", ceo:"Jeffrey Diehl (MP Group)·Brian Murphy (Head of Sec.)", keyPeople:["Jeffrey Diehl MP Group","Brian Murphy Head Sec.","Sunil Mishra Head Asia·Pacific","Kelly Meldrum CFO"], deals:[{name:"Adams Street Sec. Fund VII",year:"2023",note:"3.2B 클로징"},{name:"Co-Investment Fund VIII",year:"2024",note:"1.6B"},{name:"Adams Street Global Fund Series",year:"지속",note:"PE FoF Flagship 24+ vintage"},{name:"Asia Direct Co-Invest",year:"지속",note:"Asia·Pacific 강점"},{name:"Venture·Growth Sec.",year:"지속",note:"VC 세컨더리"}], tier:"tier2" },
+  { rank:15, name:"Glendower Capital", nameEn:"Glendower Capital LLP", aum:14, aumDisplay:"14 bn$", aumNote:"CVC 산하 (2021 인수). London 본사 2017 설립 (Deutsche Bank 분사). 세컨더리 단일", founder:"Charles Smith·Carlo Pirzio-Biroli (2017, Deutsche Bank Asset Mgmt 분사)", ceo:"Charles Smith (Founder·MP)·Carlo Pirzio-Biroli (MP)", keyPeople:["Charles Smith Founder MP","Carlo Pirzio-Biroli MP","Adrian Millan Partner","Lukasz Krasnopolski Partner"], deals:[{name:"GSP IV",year:"2020",note:"2.7B 클로징"},{name:"GSP V",year:"2024",note:"5.8B 클로징 시리즈 최대"},{name:"CVC 인수",year:"2021",note:"CVC 산하 편입"},{name:"Single-Asset CV 다수",year:"지속",note:"GP-led 특화"},{name:"GSP VI",year:"2026 모집예정",note:"7B+ 목표"}], tier:"tier2" },
+  { rank:16, name:"Capital Dynamics", nameEn:"Capital Dynamics Group", aum:12, aumDisplay:"12 bn$ (Sec.)", aumNote:"Swiss Zug 본사 1988 설립. PE + Clean Energy Infra + Private Credit 다전략. 세컨더리 부문 12B", founder:"Thomas Kubr (1988, UBS 분사) / 현재 Martin Hahn CEO", ceo:"Martin Hahn (CEO 2024~)", keyPeople:["Martin Hahn CEO","Thomas Kubr Founder Chairman","Mauro Pfister Head Sec.","Andrew Bernstein Head NA"], deals:[{name:"CD Sec. Fund III",year:"2018",note:"2B 클로징"},{name:"CD Sec. Fund IV",year:"2022",note:"3B 클로징"},{name:"Clean Energy Infra Sec.",year:"지속",note:"재생E 세컨더리 5B+"},{name:"중소형 LP-led",year:"지속",note:"미들마켓 특화"},{name:"한국 LP 출자 사례 多 (신한 등)",year:"지속",note:"한국 LP 경험 풍부"}], tier:"tier2" },
+  { rank:17, name:"TPG NewQuest", nameEn:"TPG NewQuest Capital Partners", aum:11, aumDisplay:"11 bn$", aumNote:"TPG 산하 (2018 인수). Asia 세컨더리 단일 1위. 2011 Bank of America Merrill Lynch Asia PE 분사", founder:"Min Lin·Darren Massara·Bonnie Lo 외 (2011 BoA ML Asia PE 분사)", ceo:"Min Lin·Darren Massara (Co-MPs)·Bonnie Lo (Partner)", keyPeople:["Min Lin Co-MP","Darren Massara Co-MP","Bonnie Lo Partner","Cheng Lim MD"], deals:[{name:"NewQuest Asia Fund IV",year:"2022",note:"3.2B Asia 세컨더리 단일 최대"},{name:"NewQuest Asia Fund V",year:"2025 모집중",note:"3.5B 목표"},{name:"Bain Capital Asia LP Stake",year:"2023",note:"Asia LP Stake Sale 다수"},{name:"China·India·SEA GP-led",year:"지속",note:"Asia GP-led 시장 주도"},{name:"한국 PE 세컨더리 관심",year:"지속",note:"국내 GP-led 모니터링"}], tier:"tier2" },
+  { rank:18, name:"Whitehorse", nameEn:"Whitehorse Liquidity Partners", aum:11, aumDisplay:"11 bn$ (NAV)", aumNote:"NAV Financing 단일 글로벌 1위. 2015 Toronto 설립. PE LP 또는 GP NAV 담보 대출 (Preferred Equity 구조)", founder:"Yann Robard (2015, 前 CPPIB Sec. Head)", ceo:"Yann Robard (Founder·MP)·Bob Long (Co-Founder)", keyPeople:["Yann Robard Founder MP","Bob Long Co-Founder","Tom Brown MD","Sumeet Bhambri MD"], deals:[{name:"Whitehorse Liquidity Fund IV",year:"2022",note:"5.3B 클로징"},{name:"Whitehorse Liquidity Fund V",year:"2024",note:"6B 클로징 시리즈 최대"},{name:"NAV Loans 누적",year:"지속",note:"PE LP·GP에 NAV 담보 100+ 거래"},{name:"Preferred Equity 구조",year:"지속",note:"신용 등급 8~10% 수익률"},{name:"GP-led 대안 (Continuation Fund 회피)",year:"지속",note:"LP 분배·유동성 도구"}], tier:"tier2" },
+  { rank:19, name:"17Capital", nameEn:"17Capital LLP", aum:9, aumDisplay:"9 bn$ (NAV)", aumNote:"NAV Financing 단일. 2008 London 설립. PE GP·LP NAV 담보 대출 1세대. Oaktree 일부 지분 보유", founder:"Pierre-Antoine de Selancy 외 (2008)", ceo:"Pierre-Antoine de Selancy (Founder·MP)·Augustin Duhamel (MP)", keyPeople:["Pierre-Antoine de Selancy Founder MP","Augustin Duhamel MP","Olivier Boyadjian Partner","Massimo Ferrari Partner"], deals:[{name:"17Cap Fund 5",year:"2022",note:"2.9B 클로징"},{name:"17Cap Fund 6",year:"2024",note:"3.7B 클로징 시리즈 최대"},{name:"PE NAV Loans 누적 200+",year:"지속",note:"NAV Financing 1세대"},{name:"Oaktree 일부 지분",year:"지속",note:"Oaktree 인프라 활용"},{name:"GP-led 대안",year:"지속",note:"Continuation Fund 회피용"}], tier:"tier2" },
+  { rank:20, name:"Industry Ventures", nameEn:"Industry Ventures LLC", aum:8, aumDisplay:"8 bn$ (Tech Sec.)", aumNote:"Tech·VC 세컨더리 단일 글로벌 1위. 2000 SF 설립. Late-stage VC 세컨더리 + Direct + Buyout", founder:"Hans Swildens (2000)", ceo:"Hans Swildens (Founder·CEO)", keyPeople:["Hans Swildens Founder CEO","Roland Reynolds MP","Sam Tidswell-Norrish MD","Ira Simkhovitch Partner"], deals:[{name:"Industry Ventures Sec. IX",year:"2021",note:"850M 클로징"},{name:"Industry Ventures Sec. X",year:"2024",note:"1.5B 클로징"},{name:"Tech 세컨더리 단일 1위",year:"지속",note:"Late-stage VC LP Stake 특화"},{name:"Direct Co-Invest Tech",year:"지속",note:"Direct Sec. 별도"},{name:"Buyout Series",year:"지속",note:"Tech-focused Buyout"}], tier:"tier2" },
+  { rank:21, name:"Manulife", nameEn:"Manulife Investment Mgmt", aum:7, aumDisplay:"7 bn$ (Sec.)", aumNote:"Manulife Financial (캐나다 보험) 산하. PE FoF + Sec. + Co-Invest. 캐나다·미국 중심", founder:"Manulife Financial Corp.", ceo:"Manulife IM PE 부문 (Roy Gori CEO Manulife Group)", keyPeople:["Jeff Hammer Co-Head Sec. (前 Lehman)","Paul Sanabria Co-Head Sec.","Roy Gori Manulife Group CEO"], deals:[{name:"Manulife Sec. Fund III",year:"2020",note:"1.1B"},{name:"Manulife Sec. Fund IV",year:"2023",note:"1.5B"},{name:"Manulife Captive LP",year:"지속",note:"보험 영구자본 시너지"},{name:"미들마켓 LP-led",year:"지속",note:"중소형 LP Stake"},{name:"Co-Invest",year:"지속",note:"Direct 코인베스트"}], tier:"tier3" },
+  { rank:22, name:"LGT Capital Partners", nameEn:"LGT Capital Partners (Crown 시리즈)", aum:6, aumDisplay:"6 bn$ (Sec.)", aumNote:"LGT Group (리히텐슈타인 王家) 산하 Crown 시리즈. 그룹 100B+ 중 세컨더리 6B. ESG·Impact 강점", founder:"LGT Group (Liechtenstein Princely House)", ceo:"Tycho Sneyers (CEO LGT Capital Partners)·Ivan Vercoutere (Senior Partner Sec.)", keyPeople:["Tycho Sneyers CEO","Ivan Vercoutere Senior Partner","Tobias Bracher Partner","Tilman Donath Partner"], deals:[{name:"Crown Secondaries Plus II",year:"2020",note:"2.2B"},{name:"Crown Secondaries Plus III",year:"2023",note:"3.3B"},{name:"Crown Co-Investment",year:"지속",note:"Direct Co-Invest 별도"},{name:"ESG·Impact 통합",year:"지속",note:"Impact 세컨더리 선도"},{name:"LGT Princely Family Anchor",year:"지속",note:"왕가 Anchor LP"}], tier:"tier3" },
+  { rank:23, name:"Hollyport Capital", nameEn:"Hollyport Capital LLP", aum:5, aumDisplay:"5 bn$", aumNote:"London 본사 1999 설립. 부티크 'Mid-Late stage Tail-end' 세컨더리 특화 (vintage 8~12년 펀드 인수)", founder:"John Carter (1999)", ceo:"John Carter (Founder·MP)·Gabriel Hodel (Partner)", keyPeople:["John Carter Founder MP","Gabriel Hodel Partner","Mike Niemiec Partner","David Wachter MD"], deals:[{name:"Hollyport VIII",year:"2022",note:"1.6B"},{name:"Hollyport VII",year:"2019",note:"1.0B"},{name:"Tail-end 세컨더리 단일 특화",year:"지속",note:"vintage 8~12년 펀드 LP Stake 인수"},{name:"빠른 회수 (만기 3~4년)",year:"지속",note:"IRR 15%+, DPI 2.0+"},{name:"중소형 LP-led",year:"지속",note:"미들마켓 부티크"}], tier:"tier3" },
+  { rank:24, name:"W Capital Partners", nameEn:"W Capital Partners", aum:5, aumDisplay:"5 bn$", aumNote:"NY 본사 2001 설립. <strong>Direct Secondaries 단일 특화</strong> (LP 또는 GP 보유 PE 포트폴리오 회사 직접 인수)", founder:"David Wachter·Stephen Wertheimer (2001)", ceo:"David Wachter·Stephen Wertheimer (Co-Founder MPs)", keyPeople:["David Wachter Co-Founder MP","Stephen Wertheimer Co-Founder MP","Jeffrey Bernstein Partner","Robert Migliorino Partner"], deals:[{name:"W Capital Partners V",year:"2021",note:"1.6B"},{name:"W Capital Partners VI",year:"2024",note:"2B 모집중"},{name:"Direct Secondaries 단일",year:"지속",note:"LP의 GP 펀드 보유 회사 직접 인수"},{name:"GP-Continuation 직접 참여",year:"지속",note:"Single-Asset CV Anchor"},{name:"미들마켓 Direct",year:"지속",note:"성장 단계 회사 인수"}], tier:"tier3" },
+  { rank:25, name:"Newbury Partners", nameEn:"Newbury Partners LLC", aum:5, aumDisplay:"5 bn$", aumNote:"Stamford 본사 2006 설립. 세컨더리 부티크 (소형 LP-led + GP-led 미들마켓)", founder:"Richard P. Lichter (2006, 前 Auda Advisors)", ceo:"Richard P. Lichter (Founder·MP)", keyPeople:["Richard Lichter Founder MP","Joseph C. Marks Partner","Justin Pollack Partner","Reade Gauthier Partner"], deals:[{name:"Newbury V",year:"2018",note:"1.5B"},{name:"Newbury VI",year:"2022",note:"1.7B"},{name:"중소형 LP-led 특화",year:"지속",note:"100~500M LP Stake 인수"},{name:"미들마켓 GP-led",year:"지속",note:"Single-Asset CV 미들"},{name:"Newbury VII",year:"2025 모집중",note:"2.5B 목표"}], tier:"tier3" },
+  { rank:26, name:"Committed Advisors", nameEn:"Committed Advisors SAS", aum:6, aumDisplay:"5.5 bn$ (€5bn)", aumNote:"파리 본사 2010 설립. 부티크 세컨더리 (LP-led + GP-led 미들마켓). EU 특화", founder:"Daniel Benin·Barthélémy de Beauvoir (2010)", ceo:"Daniel Benin·Barthélémy de Beauvoir (Co-Founder MPs)", keyPeople:["Daniel Benin Co-Founder MP","Barthélémy de Beauvoir Co-Founder MP","Catherine Lewis La Torre Senior Advisor","Olivier Renault Partner"], deals:[{name:"Committed Advisors IV",year:"2020",note:"1.3B"},{name:"Committed Advisors V",year:"2023",note:"2.2B 클로징 시리즈 최대"},{name:"미들마켓 LP-led EU 특화",year:"지속",note:"EU 부티크 LP Stake"},{name:"GP-led Single-Asset",year:"지속",note:"미들마켓 CV"},{name:"한국·Asia LP 확대",year:"2023~",note:"Asia 출자 확대"}], tier:"tier3" },
+  { rank:27, name:"Five Arrows Sec.", nameEn:"Five Arrows Secondary Opportunities (Rothschild)", aum:4, aumDisplay:"4 bn$ (Sec.)", aumNote:"Rothschild & Co Merchant Banking 산하 세컨더리. 그룹 25B 중 4B. EU 미들마켓 특화", founder:"Rothschild & Co Merchant Banking", ceo:"Five Arrows Sec. team (Edouard Veber Head Sec.)", keyPeople:["Edouard Veber Head Sec.","Robert Daussun MD","Jean-Marc Touchard Partner","Rothschild Family 후원"], deals:[{name:"FASO V",year:"2021",note:"1.3B"},{name:"FASO VI",year:"2024",note:"1.8B"},{name:"EU 미들마켓 Sec. 단일",year:"지속",note:"Rothschild 네트워크 활용"},{name:"GP-led Anchor 다수",year:"지속",note:"Single-Asset CV EU"},{name:"한국 출자 사례 (이지스 등)",year:"지속",note:"한국 LP 출자 경험"}], tier:"tier3" },
+  { rank:28, name:"Wilshire PE Sec.", nameEn:"Wilshire Private Markets (Sec. 부문)", aum:4, aumDisplay:"4 bn$ (Sec.)", aumNote:"Wilshire Associates 산하 Private Markets. 그룹 22B 중 세컨더리 4B. NA 미들마켓 특화", founder:"Wilshire Associates (1972 LA) → Private Markets 부문 1996~", ceo:"Jonathan Roth (President·MP Wilshire PM)·Tom Murphy (Head Sec.)", keyPeople:["Jonathan Roth President MP","Tom Murphy Head Sec.","Wilshire Associates 모회사","Bruno Raschle Senior Advisor"], deals:[{name:"Wilshire Sec. Fund III",year:"2020",note:"1.5B"},{name:"Wilshire Sec. Fund IV",year:"2023",note:"2B"},{name:"NA 미들마켓 LP-led",year:"지속",note:"중소 LP Stake"},{name:"Wilshire PE FoF 시너지",year:"지속",note:"FoF 산하 세컨더리"},{name:"GP-led 미들마켓",year:"지속",note:"Single-Asset CV"}], tier:"tier3" },
+  { rank:29, name:"Glouston Capital", nameEn:"Glouston Capital Partners", aum:3.5, aumDisplay:"3.5 bn$", aumNote:"Boston 본사 2017 설립. 부티크 세컨더리 (LP-led + GP-led, 미들마켓 특화)", founder:"Adam Smith·John Wesley 외 (2017)", ceo:"Adam Smith·John Wesley (Co-Founder MPs)", keyPeople:["Adam Smith Co-Founder","John Wesley Co-Founder","Senior 멤버 다수","2017 신생 부티크"], deals:[{name:"Glouston I",year:"2019",note:"800M"},{name:"Glouston II",year:"2022",note:"1.3B"},{name:"Glouston III",year:"2024",note:"1.4B"},{name:"미들마켓 부티크",year:"지속",note:"중소 LP Stake"},{name:"신생 GP",year:"성장 중",note:"부티크 세컨더리 신규"}], tier:"tier3" },
+  { rank:30, name:"Akkadian Ventures", nameEn:"Akkadian Ventures", aum:3, aumDisplay:"3 bn$ (VC Sec.)", aumNote:"SF 본사 2010 설립. <strong>VC·Tech 세컨더리 단일 부티크</strong> (Industry Ventures와 경쟁). Late-stage VC LP Stake 특화", founder:"Ben Black·Peter Lacaillade (2010)", ceo:"Ben Black·Peter Lacaillade (Co-Founder MPs)", keyPeople:["Ben Black Co-Founder","Peter Lacaillade Co-Founder","Mark Reith Partner","Caroline Spalding Partner"], deals:[{name:"Akkadian Ventures VI",year:"2021",note:"650M"},{name:"Akkadian Ventures VII",year:"2024",note:"850M"},{name:"VC 세컨더리 단일",year:"지속",note:"Late-stage VC LP Stake"},{name:"Tech 직접 인수",year:"지속",note:"Direct VC Sec."},{name:"부티크 VC Sec.",year:"성장 중",note:"Industry Ventures 경쟁사"}], tier:"tier3" }
+];
+
+// ============= ③ AUM Distribution + Exposure Chart =============
+const aumChartBody = document.getElementById('aumChartBody');
+const BAR_MAX = 60; // 60B 캡 (Ardian 115B 캡)
+const dataForChart = peData.slice().sort((a,b) => b.aum - a.aum);
+
+aumChartBody.innerHTML = dataForChart.map(p => {
+  const exp = exposureData[p.rank];
+  const rowCls = exp ? 'aum-row invested' : 'aum-row';
+  const tierCls = p.tier==='tier1'?'tier1':p.tier==='tier2'?'tier2':p.tier==='tier3'?'tier3':'tier4';
+
+  let barHTML;
+  if (p.aum > BAR_MAX) {
+    barHTML = `<div class="aum-bar tier1" style="width:100%; background: linear-gradient(90deg, #2a4858 0%, #2a4858 90%, #c0392b 90%, #c0392b 100%);"></div>`;
+  } else {
+    const w = (p.aum / BAR_MAX * 100).toFixed(1);
+    barHTML = `<div class="aum-bar ${tierCls}" style="width:${w}%;"></div>`;
+  }
+
+  let aumText;
+  if (p.aum > BAR_MAX) {
+    aumText = `<div class="aum-amount" style="color:#c0392b;">${p.aumDisplay}<br><span style="font-size:9.5px;color:#c0392b;font-weight:700;">⚡ 막대 캡 처리</span></div>`;
+  } else {
+    aumText = `<div class="aum-amount">${p.aumDisplay}</div>`;
+  }
+
+  let expHTML;
+  if (exp) {
+    const tagInfo = expTypeMap[exp.type];
+    const fundsHTML = exp.funds.map(f =>
+      `<div style="margin-bottom:3px;"><span style="font-weight:600;color:#2a4858;font-size:10.5px;">${f.name}</span> <span class="exp-tag indirect" style="font-size:8.5px;">${f.cat}</span><br><span style="font-size:10.5px; color:#5a6378;">약정 <strong style="color:#b7791f;">${f.commit.toFixed(1)}억</strong> / 잔액 <strong>${f.balance.toFixed(1)}억</strong></span></div>`
+    ).join('');
+    const total = totalCommit(p.rank).toFixed(1);
+    const tBal = totalBalance(p.rank).toFixed(1);
+    const summary = exp.funds.length > 1
+      ? `<div style="border-top:1px dashed #b7791f; margin-top:4px; padding-top:4px; font-size:10.5px;color:#2a4858;"><strong>합계: 약정 ${total}억 / 잔액 ${tBal}억 (${exp.funds.length}개 펀드)</strong></div>`
+      : '';
+    expHTML = `<div class="exp-box"><div class="exp-label">자사 익스포저 <span class="exp-tag ${tagInfo.cls}" style="font-size:8.5px;margin-left:3px;">${tagInfo.label}</span></div>${fundsHTML}${summary}</div>`;
+  } else {
+    expHTML = `<span class="no-exp">— 익스포저 없음 —</span>`;
+  }
+
+  return `<div class="${rowCls}">
+    <div class="aum-rank">${p.rank}</div>
+    <div class="aum-gp-name">${p.name}<span class="en">${p.nameEn}</span></div>
+    <div class="aum-bar-track">${barHTML}</div>
+    ${aumText}
+    <div class="aum-exposure">${expHTML}</div>
+  </div>`;
+}).join('');
+
+// ============= ④ Strategy Heatmap (6 types) =============
+const typeList = ["LP-led","GP-led / CV","Direct Sec.","Credit Sec.","NAV Fin.","Infra/RE Sec."];
+const heatmapData = [
+  { name:"Ardian",            vals:[5,4,3,2,1,4] },
+  { name:"BX Strategic Partners", vals:[4,5,2,2,1,4] },
+  { name:"Lexington Partners",vals:[5,3,2,0,0,1] },
+  { name:"HarbourVest",       vals:[4,4,3,1,0,2] },
+  { name:"StepStone (Sec.)",  vals:[4,5,2,1,1,3] },
+  { name:"Goldman Vintage",   vals:[4,4,3,0,0,2] },
+  { name:"AlpInvest",         vals:[4,4,3,1,0,2] },
+  { name:"NB Secondaries",    vals:[4,4,2,1,0,1] },
+  { name:"Hamilton Lane Sec.",vals:[4,4,2,1,1,2] },
+  { name:"Coller Capital",    vals:[5,4,2,3,0,1] },
+  { name:"Pantheon",          vals:[4,4,2,1,0,3] },
+  { name:"ICG Strategic Eq.", vals:[2,5,3,2,1,1] },
+  { name:"Pomona Capital",    vals:[5,2,1,0,0,0] },
+  { name:"Adams Street Sec.", vals:[3,4,2,1,0,1] },
+  { name:"Glendower Capital", vals:[3,5,2,0,0,0] },
+  { name:"Capital Dynamics",  vals:[4,3,1,1,0,3] },
+  { name:"TPG NewQuest",      vals:[4,4,3,0,0,1] },
+  { name:"Whitehorse",        vals:[1,1,0,1,5,0] },
+  { name:"17Capital",         vals:[1,1,0,1,5,0] },
+  { name:"Industry Ventures", vals:[4,3,5,0,0,0] }
+];
+const hmHTML = `<div class="hm-header"><div>운용사</div>${typeList.map(s=>`<div>${s}</div>`).join('')}</div>
+${heatmapData.map(r=>`<div class="hm-row"><div class="hm-name">${r.name}</div>${r.vals.map(v=>`<div class="hm-cell h${v}">${v>0?'★'.repeat(v):'·'}</div>`).join('')}</div>`).join('')}`;
+document.getElementById('heatmap').innerHTML = hmHTML;
+
+// Strategy Table (20)
+const strategyData = [
+  { rank:1, name:"Ardian", strat:["lpled","gpled","infra"], deal:"5~30억$ (LP)", region:"EU 50% / NA 35% / Asia 15%", focus:"세컨더리 글로벌 1위·다전략·Infra Sec.", exp:"없음" },
+  { rank:2, name:"BX Strategic Partners", strat:["gpled","lpled","infra"], deal:"5~25억$", region:"NA 60% / EU 30% / Asia 10%", focus:"Blackstone 산하·GP-led Top 3·RE Sec.", exp:"없음" },
+  { rank:3, name:"Lexington Partners", strat:["lpled","gpled"], deal:"3~25억$", region:"NA 60% / EU 25% / Asia 15%", focus:"LP-led 단일 특화·Franklin Templeton 자회사", exp:"없음" },
+  { rank:4, name:"HarbourVest", strat:["lpled","gpled","direct"], deal:"3~15억$", region:"NA 55% / EU 30% / Asia 15%", focus:"Primary+Sec.+Direct 통합·Dover 시리즈", exp:"없음" },
+  { rank:5, name:"StepStone (Sec.)", strat:["gpled","lpled","infra"], deal:"FoF·Sec. 통합", region:"NA 50% / EU 30% / Asia 20%", focus:"GP-led Continuation 1세대·다지역 FoF", exp:"152.5억 (보고·이지스 StepStone)" },
+  { rank:6, name:"Goldman Vintage", strat:["lpled","gpled","direct"], deal:"5~30억$", region:"NA 60% / EU 25% / Asia 15%", focus:"Goldman 시너지·Vintage 1998~", exp:"없음" },
+  { rank:7, name:"AlpInvest", strat:["lpled","gpled","direct"], deal:"3~20억$", region:"EU 45% / NA 40% / Asia 15%", focus:"Carlyle 산하·APG/PGGM Anchor LP", exp:"없음" },
+  { rank:8, name:"NB Secondaries", strat:["lpled","gpled"], deal:"3~15억$", region:"NA 60% / EU 30% / Asia 10%", focus:"NB Crossroads 시리즈·NB Alts 통합", exp:"없음" },
+  { rank:9, name:"Hamilton Lane Sec.", strat:["lpled","gpled","infra"], deal:"2~10억$", region:"NA 55% / EU 25% / Asia 20%", focus:"FoF 통합·Tokenization 선도", exp:"184.5억 (유진·현대인베 HL)" },
+  { rank:10, name:"Coller Capital", strat:["lpled","gpled","credit"], deal:"3~20억$", region:"EU 40% / NA 40% / Asia 20%", focus:"세컨더리 1세대·Credit Sec. 신설", exp:"129.5억 (삼성 CIP IX)" },
+  { rank:11, name:"Pantheon", strat:["lpled","gpled","infra"], deal:"1~10억$", region:"NA 50% / EU 35% / Asia 15%", focus:"AMG 산하·Infra Sec. 별도", exp:"없음" },
+  { rank:12, name:"ICG Strategic Eq.", strat:["gpled","direct"], deal:"3~20억$", region:"EU 50% / NA 40% / Asia 10%", focus:"Single-Asset CV 단일 특화·GP-led Top 3", exp:"없음" },
+  { rank:13, name:"Pomona Capital", strat:["lpled"], deal:"0.5~3억$ (Mid)", region:"NA 70% / EU 25% / Asia 5%", focus:"미들마켓 LP-led 단일·Interval Fund", exp:"112.5억 (유진 포모나)" },
+  { rank:14, name:"Adams Street Sec.", strat:["lpled","gpled","direct"], deal:"2~10억$", region:"NA 55% / EU 25% / Asia 20%", focus:"PE FoF 통합·100% 직원 보유", exp:"없음" },
+  { rank:15, name:"Glendower Capital", strat:["gpled","lpled"], deal:"2~15억$", region:"EU 60% / NA 30% / Asia 10%", focus:"CVC 산하·Single-Asset CV 특화", exp:"없음" },
+  { rank:16, name:"Capital Dynamics", strat:["lpled","infra"], deal:"1~5억$", region:"EU 50% / NA 40% / Asia 10%", focus:"Clean Energy Sec.·중소 LP-led", exp:"없음" },
+  { rank:17, name:"TPG NewQuest", strat:["lpled","gpled","direct"], deal:"3~20억$", region:"Asia 80% / NA·EU 20%", focus:"Asia 세컨더리 단일 1위", exp:"없음" },
+  { rank:18, name:"Whitehorse", strat:["nav"], deal:"0.5~3억$ NAV Loan", region:"NA 70% / EU 25% / Asia 5%", focus:"NAV Financing 단일 글로벌 1위", exp:"없음" },
+  { rank:19, name:"17Capital", strat:["nav"], deal:"0.5~3억$ NAV Loan", region:"EU 50% / NA 40% / Asia 10%", focus:"NAV Financing 1세대·Oaktree 지분", exp:"없음" },
+  { rank:20, name:"Industry Ventures", strat:["direct","lpled","tech"], deal:"0.3~2억$ (Tech)", region:"NA 80% / EU 15% / Asia 5%", focus:"Tech·VC 세컨더리 단일 1위", exp:"없음" }
+];
+const stratLabel = {
+  lpled:{cls:"strat-lpled",label:"LP-led"},
+  gpled:{cls:"strat-gpled",label:"GP-led / CV"},
+  direct:{cls:"strat-direct",label:"Direct Sec."},
+  credit:{cls:"strat-credit",label:"Credit Sec."},
+  nav:{cls:"strat-nav",label:"NAV Financing"},
+  tech:{cls:"strat-tech",label:"Tech·VC Sec."},
+  asia:{cls:"strat-asia",label:"Asia 특화"},
+  infra:{cls:"strat-infra",label:"Infra·RE Sec."}
+};
+document.getElementById('strategyTableBody').innerHTML = strategyData.map(d=>{
+  const sb = d.strat.map(s=>{ const i=stratLabel[s]; return `<span class="strat-badge ${i.cls}">${i.label}</span>`; }).join('');
+  const expCls = d.exp==="없음" ? "color:#8089a0;font-size:11px;" : "color:#b7791f;font-weight:600;font-size:11.5px;";
+  return `<tr><td class="name-cell">${d.name}</td><td><div class="strat-badges">${sb}</div></td><td>${d.deal}</td><td style="font-size:11.5px;">${d.region}</td><td style="font-size:11.5px;">${d.focus}</td><td style="${expCls}">${d.exp}</td></tr>`;
+}).join('');
+
+// Strategy & Type charts
+const strategyCounts = {};
+strategyData.forEach(d => d.strat.forEach(s => { strategyCounts[s] = (strategyCounts[s]||0)+1; }));
+new Chart(document.getElementById('strategyChart'), {
+  type: 'bar',
+  data: { labels: Object.keys(strategyCounts).map(k=>stratLabel[k].label), datasets:[{ data: Object.values(strategyCounts), backgroundColor:['#2a4858','#b7791f','#2c7a7b','#6b46c1','#742a2a','#e6e9f5','#fef3e6','#f0e6f3'], borderRadius:3 }] },
+  options: { indexAxis:'y', responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{x:{beginAtZero:true, grid:{color:'#eef2f9'}}, y:{grid:{display:false}}}}
+});
+const typeCounts = typeList.map((t,i) => ({ name:t, count: heatmapData.filter(r=>r.vals[i]>=3).length }));
+new Chart(document.getElementById('typeChart'), {
+  type: 'bar',
+  data: { labels: typeCounts.map(s=>s.name), datasets:[{ data: typeCounts.map(s=>s.count), backgroundColor:'#2c7a7b', borderRadius:3 }] },
+  options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, grid:{color:'#eef2f9'}}, x:{grid:{display:false}, ticks:{font:{size:10}, maxRotation:35, minRotation:35}}}}
+});
+
+// ============= ⑤ Flagship Secondary Fund Performance Tracker =============
+const perfData = [
+  { gp:"Ardian Secondary Fund (ASF)", isGp:true },
+  { vintage:"2024", fund:"ASF IX", size:"$30B", irr:null, irrTag:"early", moic:1.0, dpi:0.0, tvpi:1.0, note:"투자 초기 (J-Curve)" },
+  { vintage:"2020", fund:"ASF VIII", size:"$19B", irr:19, irrTag:"high", moic:1.5, dpi:0.8, tvpi:1.5, note:"Top-Quartile, 회수 진행 활발" },
+  { vintage:"2016", fund:"ASF VII", size:"$10.8B", irr:17, irrTag:"med", moic:1.7, dpi:1.5, tvpi:1.7, note:"부분 만기, DPI 1.5x" },
+  { gp:"Blackstone Strategic Partners (SP)", isGp:true },
+  { vintage:"2023", fund:"SP IX", size:"$25B", irr:null, irrTag:"early", moic:1.0, dpi:0.0, tvpi:1.0, note:"투자 초기" },
+  { vintage:"2019", fund:"SP VIII", size:"$11.1B", irr:18, irrTag:"med", moic:1.4, dpi:0.7, tvpi:1.5, note:"GP-led 비중 높음" },
+  { vintage:"2015", fund:"SP VII", size:"$7.5B", irr:15, irrTag:"med", moic:1.6, dpi:1.3, tvpi:1.6, note:"부분 만기, DPI 1.3x" },
+  { gp:"Lexington Partners (Capital Partners)", isGp:true },
+  { vintage:"2023", fund:"Lexington Capital X", size:"$22.7B", irr:null, irrTag:"early", moic:1.0, dpi:0.0, tvpi:1.0, note:"투자 초기" },
+  { vintage:"2019", fund:"Lexington Capital IX", size:"$14B", irr:18, irrTag:"med", moic:1.4, dpi:0.6, tvpi:1.5, note:"LP-led 단일 특화 펀드" },
+  { vintage:"2014", fund:"Lexington Capital VIII", size:"$10.1B", irr:15, irrTag:"med", moic:1.7, dpi:1.4, tvpi:1.7, note:"부분 만기, DPI 1.4x" },
+  { gp:"HarbourVest (Dover Street)", isGp:true },
+  { vintage:"2022", fund:"Dover X", size:"$4.5B", irr:null, irrTag:"early", moic:1.1, dpi:0.05, tvpi:1.1, note:"투자 초기" },
+  { vintage:"2018", fund:"Dover IX", size:"$3B", irr:17, irrTag:"med", moic:1.5, dpi:0.9, tvpi:1.5, note:"부분 만기 진행" },
+  { vintage:"2014", fund:"Dover VIII", size:"$3.6B", irr:14, irrTag:"low", moic:1.6, dpi:1.5, tvpi:1.6, note:"부분 만기, DPI 1.5x" },
+  { gp:"StepStone Secondary", isGp:true },
+  { vintage:"2024", fund:"StepStone Sec. V", size:"$5B", irr:null, irrTag:"early", moic:1.0, dpi:0.0, tvpi:1.0, note:"투자 초기" },
+  { vintage:"2020", fund:"StepStone Sec. IV", size:"$2.4B", irr:18, irrTag:"med", moic:1.4, dpi:0.6, tvpi:1.5, note:"GP-led 비중 높음" },
+  { vintage:"2017", fund:"StepStone Sec. III", size:"$1.7B", irr:17, irrTag:"med", moic:1.7, dpi:1.3, tvpi:1.7, note:"부분 만기" },
+  { gp:"Goldman Vintage Funds", isGp:true },
+  { vintage:"2024", fund:"Vintage IX", size:"$14.2B", irr:null, irrTag:"early", moic:1.0, dpi:0.0, tvpi:1.0, note:"투자 초기" },
+  { vintage:"2019", fund:"Vintage VIII", size:"$10.3B", irr:18, irrTag:"med", moic:1.4, dpi:0.6, tvpi:1.5, note:"부분 만기 진행" },
+  { vintage:"2015", fund:"Vintage VII", size:"$7B", irr:16, irrTag:"med", moic:1.6, dpi:1.2, tvpi:1.6, note:"부분 만기, DPI 1.2x" },
+  { gp:"AlpInvest Secondary", isGp:true },
+  { vintage:"2024", fund:"AlpInvest Sec. VIII", size:"$8B", irr:null, irrTag:"early", moic:1.0, dpi:0.0, tvpi:1.0, note:"투자 초기" },
+  { vintage:"2020", fund:"AlpInvest Sec. VII", size:"$7.5B", irr:19, irrTag:"high", moic:1.5, dpi:0.7, tvpi:1.5, note:"Top-Quartile" },
+  { vintage:"2016", fund:"AlpInvest Sec. VI", size:"$6.5B", irr:17, irrTag:"med", moic:1.7, dpi:1.4, tvpi:1.7, note:"부분 만기, DPI 1.4x" },
+  { gp:"Coller International Partners (IP)", isGp:true },
+  { vintage:"2024", fund:"Coller IP IX", size:"$14B target", irr:null, irrTag:"early", moic:1.0, dpi:0.0, tvpi:1.0, note:"1차 클로징 8B (2025.Q1)" },
+  { vintage:"2020", fund:"Coller IP VIII", size:"$9B", irr:16, irrTag:"med", moic:1.3, dpi:0.4, tvpi:1.3, note:"GP-led 비중 증가" },
+  { vintage:"2016", fund:"Coller IP VII", size:"$7.15B", irr:15, irrTag:"med", moic:1.6, dpi:1.2, tvpi:1.6, note:"부분 만기" },
+  { gp:"NB Secondaries (Crossroads)", isGp:true },
+  { vintage:"2022", fund:"NB Crossroads XXI", size:"$7B", irr:null, irrTag:"early", moic:1.05, dpi:0.05, tvpi:1.05, note:"투자 초기" },
+  { vintage:"2018", fund:"NB Crossroads XX", size:"$5B", irr:15, irrTag:"med", moic:1.4, dpi:0.7, tvpi:1.4, note:"부분 만기 진행" },
+  { vintage:"2014", fund:"NB Crossroads XIX", size:"$2.5B", irr:14, irrTag:"low", moic:1.6, dpi:1.4, tvpi:1.6, note:"부분 만기, DPI 1.4x" },
+  { gp:"Hamilton Lane Secondary", isGp:true },
+  { vintage:"2024", fund:"HL Sec. VI", size:"$3.9B", irr:null, irrTag:"early", moic:1.0, dpi:0.0, tvpi:1.0, note:"투자 초기" },
+  { vintage:"2020", fund:"HL Sec. V", size:"$3.9B", irr:17, irrTag:"med", moic:1.4, dpi:0.7, tvpi:1.4, note:"GP-led 비중 높음" },
+  { vintage:"2016", fund:"HL Sec. IV", size:"$1.9B", irr:16, irrTag:"med", moic:1.7, dpi:1.4, tvpi:1.7, note:"부분 만기, DPI 1.4x" },
+  { gp:"Pomona Capital", isGp:true },
+  { vintage:"2022", fund:"Pomona Capital X", size:"$2.2B", irr:null, irrTag:"early", moic:1.05, dpi:0.05, tvpi:1.1, note:"투자 초기" },
+  { vintage:"2018", fund:"Pomona Capital IX", size:"$1.8B", irr:16, irrTag:"med", moic:1.4, dpi:0.8, tvpi:1.4, note:"미들마켓 LP-led 부분 만기" },
+  { vintage:"2014", fund:"Pomona Capital VIII", size:"$1.75B", irr:14, irrTag:"low", moic:1.5, dpi:1.3, tvpi:1.5, note:"부분 만기, DPI 1.3x" },
+  { gp:"Whitehorse Liquidity Partners (NAV)", isGp:true },
+  { vintage:"2024", fund:"Whitehorse V", size:"$6B", irr:null, irrTag:"early", moic:1.0, dpi:0.0, tvpi:1.0, note:"투자 초기, NAV Loan 9~12% 수익률" },
+  { vintage:"2022", fund:"Whitehorse IV", size:"$5.3B", irr:10, irrTag:"med", moic:1.2, dpi:0.4, tvpi:1.3, note:"NAV Financing, Credit-like 수익" },
+  { vintage:"2019", fund:"Whitehorse III", size:"$2.6B", irr:11, irrTag:"med", moic:1.4, dpi:1.0, tvpi:1.4, note:"NAV Loan 부분 만기" }
+];
+const perfTableBody = document.getElementById('perfTableBody');
+perfTableBody.innerHTML = perfData.map(p=>{
+  if (p.isGp) return `<tr class="gp-row"><td colspan="8">${p.gp}</td></tr>`;
+  const irrCls = p.irrTag==='early'?'early':p.irrTag==='high'?'high':p.irrTag==='med'?'med':'low';
+  const irrText = p.irr===null ? 'Early Stage' : `${p.irr}%`;
+  const tag = p.irrTag==='early' ? '<span class="perf-tag early">Early</span>' : (p.dpi >= 1.0 ? '<span class="perf-tag realized">DPI 1.0x+</span>' : (p.dpi >= 0.5 ? '<span class="perf-tag partial">부분 회수</span>' : ''));
+  return `<tr>
+    <td class="fund-name">${p.fund}</td>
+    <td class="vintage">${p.vintage}</td>
+    <td class="num">${p.size}</td>
+    <td class="num perf-irr ${irrCls}">${irrText}</td>
+    <td class="num">${p.moic.toFixed(1)}x</td>
+    <td class="num">${p.dpi.toFixed(2)}x</td>
+    <td class="num">${p.tvpi.toFixed(1)}x</td>
+    <td style="font-size:10.5px;color:#5a6378;">${p.note} ${tag}</td>
+  </tr>`;
+}).join('');
+
+// ============= ⑥ Fundraising Tracker =============
+const fundraiseData = [
+  { gp:"Ardian", fund:"ASF X (Secondaries)", target:"USD 35B", progress:75, anchor:"세컨더리 사상 최대 (LP-led 중심)", status:"clos1" },
+  { gp:"Lexington Partners", fund:"Lexington XI", target:"USD 25B", progress:55, anchor:"LP-led 단일 특화", status:"open" },
+  { gp:"BX Strategic Partners", fund:"SP X", target:"USD 30B (검토)", progress:30, anchor:"GP-led 비중 50%+ 전환", status:"open" },
+  { gp:"Goldman Vintage", fund:"Vintage X", target:"USD 17B", progress:45, anchor:"Goldman 시너지·다전략", status:"open" },
+  { gp:"AlpInvest", fund:"AlpInvest Sec. IX", target:"USD 10B", progress:50, anchor:"APG/PGGM Anchor + Carlyle 통합", status:"open" },
+  { gp:"HarbourVest", fund:"Dover XI", target:"USD 6B", progress:60, anchor:"NA·EU·Asia 다지역", status:"open" },
+  { gp:"StepStone", fund:"StepStone Secondary VI", target:"USD 7B", progress:55, anchor:"GP-led Continuation 중심", status:"open" },
+  { gp:"NB Secondaries", fund:"NB Crossroads XXII", target:"USD 6B", progress:60, anchor:"GP-led + LP-led 통합", status:"open" },
+  { gp:"Hamilton Lane Sec.", fund:"HL Sec. VII", target:"USD 5B", progress:35, anchor:"FoF 시너지·Tokenization 신상품", status:"open" },
+  { gp:"Coller Capital", fund:"Coller IP IX", target:"USD 14B", progress:60, anchor:"PE 세컨더리 + Credit Sec. II 8B 병행", status:"open" },
+  { gp:"Pantheon", fund:"Pantheon Global Sec. VII", target:"USD 3.5B", progress:50, anchor:"AMG 산하 다지역 FoF 시너지", status:"open" },
+  { gp:"ICG Strategic Eq.", fund:"ICG SE V", target:"USD 7B", progress:50, anchor:"Single-Asset CV 단일 특화", status:"open" },
+  { gp:"Pomona Capital", fund:"Pomona Capital XI", target:"USD 2.5B", progress:40, anchor:"미들마켓 LP-led 부티크", status:"open" },
+  { gp:"Adams Street Sec.", fund:"Adams Street Sec. VIII", target:"USD 4B", progress:35, anchor:"PE FoF 통합 시너지", status:"open" },
+  { gp:"Glendower Capital", fund:"GSP VI", target:"USD 7B+", progress:20, anchor:"CVC 산하·GP-led 특화 (2026 모집예정)", status:"target" },
+  { gp:"TPG NewQuest", fund:"NewQuest Asia V", target:"USD 3.5B", progress:65, anchor:"Asia 세컨더리 단일 글로벌 1위", status:"open" },
+  { gp:"Whitehorse", fund:"Whitehorse VI", target:"USD 7B", progress:40, anchor:"NAV Financing 시리즈 최대", status:"open" },
+  { gp:"17Capital", fund:"17Cap VII", target:"USD 5B", progress:30, anchor:"NAV Financing 1세대 시리즈 최대", status:"open" },
+  { gp:"Industry Ventures", fund:"Industry Ventures Sec. XI", target:"USD 2B", progress:55, anchor:"Tech·VC 세컨더리 단일 1위", status:"open" },
+  { gp:"Capital Dynamics", fund:"CD Sec. V", target:"USD 3.5B", progress:25, anchor:"Clean Energy Infra Sec. 통합", status:"open" },
+  { gp:"Committed Advisors", fund:"Committed Advisors VI", target:"EUR 3B", progress:50, anchor:"EU 미들마켓 부티크", status:"open" }
+];
+const frStatusMap = { open:{cls:"open", label:"모집 중"}, clos1:{cls:"clos1", label:"1차 클로징 완료"}, target:{cls:"target", label:"목표 단계"} };
+document.getElementById('fundraiseTableBody').innerHTML = fundraiseData.map(d=>{
+  const st = frStatusMap[d.status];
+  return `<tr><td class="name-cell">${d.gp}</td><td style="font-size:12px;">${d.fund}</td><td class="amt-cell" style="font-size:12.5px;">${d.target}</td><td style="text-align:right;"><strong>${d.progress}%</strong><div class="fr-prog-wrap"><div class="fr-prog-fill" style="width:${d.progress}%"></div></div></td><td style="font-size:11.5px;">${d.anchor}</td><td><span class="fr-status ${st.cls}">${st.label}</span></td></tr>`;
+}).join('');
+
+// ============= ⑦ Continuation Fund / LP Stake Sale Hall of Fame =============
+const cfHofData = [
+  // GP-led / Continuation Fund 메가 거래
+  { type:"gpled", gp:"Hg Capital", title:"Hg Saturn Fund III", size:"$5.5B", year:"2024", note:"SW 자산 5개 Continuation Fund. 시리즈 누적 3번째, 세컨더리 시장 최대 Continuation Fund 사례 중 하나" },
+  { type:"gpled", gp:"TA Associates", title:"TA Selects Fund", size:"$2.6B", year:"2023", note:"Multi-asset Continuation Fund (5개 자산). 미들·라지 SW·서비스 포트폴리오 Continuation" },
+  { type:"gpled", gp:"Clearlake Capital", title:"Icon Continuation", size:"$2B", year:"2023", note:"Single-Asset CV. Clearlake 보유 자산 1개 Continuation Fund 이전" },
+  { type:"gpled", gp:"Audax Group", title:"Audax Origins II", size:"$1.7B", year:"2023", note:"Multi-asset CV. 미들마켓 Buy & Build 포트폴리오 Continuation" },
+  { type:"gpled", gp:"Insight Partners", title:"Insight Vision Capital", size:"$1.3B", year:"2022", note:"Multi-asset CV. SW Growth 포트폴리오 Continuation Fund" },
+  { type:"gpled", gp:"Genstar Capital", title:"Genstar Continuation", size:"$1.5B", year:"2023", note:"Multi-asset CV. 미들·라지 산업·SW 포트폴리오" },
+  { type:"gpled", gp:"Carlyle Group", title:"Carlyle Continuation", size:"$1.5B", year:"2023", note:"Single-Asset CV. Corporate PE 보유자산 1개 Continuation" },
+  { type:"gpled", gp:"CD&R", title:"CD&R Continuation", size:"$1.1B", year:"2024", note:"Multi-asset CV. Operating Partner 모델 Continuation" },
+  { type:"gpled", gp:"New Mountain", title:"NM Strategic Equity Continuation", size:"$1.0B", year:"2024", note:"Multi-asset CV. 헬스케어·SW 포트폴리오" },
+  { type:"gpled", gp:"Insight Partners", title:"Insight Vision Capital II", size:"$1.5B", year:"2024", note:"제 2차 Continuation Fund (SW Growth 포트폴리오)" },
+  // LP-led / LP Stake Sale 메가 거래
+  { type:"lpled", gp:"CalPERS → 다수 GP", title:"CalPERS PE Portfolio Sale (rumored)", size:"$6B+", year:"2024~2025", note:"미국 최대 공공연금 CalPERS의 PE 포트폴리오 매각 보도. Ardian·BX Strategic 등 후보" },
+  { type:"lpled", gp:"Mubadala → AlpInvest·Ardian", title:"Mubadala Capital Portfolio Sale", size:"$1.5B", year:"2023~2024", note:"UAE 국부펀드 Mubadala PE 포트폴리오 일부 매각. AlpInvest·Ardian 다수 인수" },
+  { type:"lpled", gp:"Texas Teachers (TRS)", title:"TRS PE Sec. Sale", size:"$2.5B", year:"2024", note:"텍사스 교사 연금 PE 포트폴리오 매각" },
+  { type:"lpled", gp:"Sweden AP Funds", title:"AP1/AP2 Portfolio Sale", size:"$1.2B", year:"2024", note:"스웨덴 국부연금 AP1·AP2의 PE 포트폴리오 매각 (자산배분 재조정)" },
+  { type:"lpled", gp:"Norway GPFG → 다수 GP", title:"Norway Wealth Fund PE Stake", size:"검토 중", year:"2025~", note:"노르웨이 국부펀드 GPFG (1.7조$ AUM) PE 진입 검토에 따른 세컨더리 매입 잠재 LP" },
+  { type:"lpled", gp:"한국 KIC", title:"KIC PE LP Stake Sale (검토)", size:"비공개", year:"2024~2025", note:"한국 KIC 일부 PE 포트폴리오 재조정 검토 보도 (Korean LP Sec. 진출)" }
+];
+const cfHofGrid = document.getElementById('cfHofGrid');
+cfHofGrid.innerHTML = cfHofData.map(d=>{
+  const tagText = d.type==="gpled" ? "GP-led / CV" : "LP-led / Stake Sale";
+  return `<div class="cf-card ${d.type}"><span class="cf-tag">${tagText}</span><div class="cf-title">${d.title}</div><div class="cf-gp">${d.gp}</div><div class="cf-metric"><div class="cf-size">${d.size}</div><div class="cf-label">${d.year}</div></div><div class="cf-note">${d.note}</div></div>`;
+}).join('');
+
+// ============= ⑧ Risk Tracker =============
+const riskData = [
+  { gp:"Industry-wide (NAV Pricing)", flag:"yellow", title:"NAV Pricing Discount 변동성 (2022~2023 위축, 2025 회복)", body:"<strong>2022~2023 NAV 평균 88%까지 하락 (금리상승·시장 조정)</strong> → 2024 92% → 2025 94%로 회복. 세컨더리 GP는 NAV 협상력이 성과의 핵심. LP는 NAV 평가일 vs 거래일 격차·Mark-to-Market 변동성 고려 필요." },
+  { gp:"Industry-wide (GP-led Conflict)", flag:"yellow", title:"GP-led Continuation Fund 이해상충 (ILPA 2024 가이드라인)", body:"<strong>GP-led는 GP가 매각자(LP 분배)이자 인수자(신규 펀드)로 양립 → 이해상충 핵심</strong>. ILPA 2024 Best Practices: 1) 독립 가치평가 필수 2) LP 80%+ 동의 3) Status Quo Option (LP가 기존 펀드 유지 선택권) 보장. 출자심사 시 ILPA 가이드 준수 여부 확인 필수." },
+  { gp:"Industry-wide (NAV Financing)", flag:"yellow", title:"NAV Financing 신용리스크 부각 (17Cap·Whitehorse 등)", body:"NAV Loan은 PE 펀드 NAV 담보 대출로 <strong>분배 가속화 도구이나 GP가 손실 시 LP 분배 우선순위 후순위화 위험</strong>. ILPA·일부 LP는 '2024년 LP 동의 없이 NAV Financing 불가' 정책 채택. NAV 대비 LTV 30%+ 거래 시 신중 검토 권고." },
+  { gp:"Coller Capital", flag:"info", title:"Coller IP IX 펀드레이징 지연 (2024.Q1~2025.Q1)", body:"<strong>당초 2024년 12B 클로징 목표→2025.Q1 8B 1차 클로징, 최종 14B 목표 유지</strong>. 세컨더리 시장 전반 LP 자금 위축의 영향. 펀드 사이즈 축소 가능성은 낮으나 모집 일정 18개월 지연." },
+  { gp:"Lexington Partners", flag:"info", title:"Franklin Templeton 인수 후 자율성 모니터링 (2022~)", body:"2022.04 Franklin Templeton 17.5억$ 인수. <strong>FT 산하 후 핵심 인력 이탈은 없으나 LP는 의사결정 자율성·문화 변화 모니터링 중</strong>. Lexington X 22.7B 클로징(2023) 성공으로 자율성 일단 확인." },
+  { gp:"BX Strategic Partners", flag:"info", title:"GP-led 비중 급증·LP-led 점유율 감소", body:"<strong>SP IX 25B(2023)에서 GP-led 비중 50%+ → SP VIII 30% 대비 급증</strong>. Blackstone 본체 LP들의 GP-led(Single-Asset CV)에 대한 이해상충 우려 일부 존재. LP는 펀드 mandate·GP-led 비중 적정성 확인 필요." },
+  { gp:"AlpInvest", flag:"info", title:"Carlyle 본체와의 LP 충돌 가능성 모니터링", body:"AlpInvest는 Carlyle 100% 자회사. <strong>Carlyle 본체 펀드와 AlpInvest 세컨더리가 동일 자산 인수/매각 시 이해상충 가능성</strong>. AlpInvest는 별도 운용 의사결정 보장하나 LP는 Conflict Wall 정책 점검 필요." },
+  { gp:"Pomona Capital", flag:"info", title:"미들마켓 LP-led 단일 특화·Interval Fund 유동성", body:"<strong>Pomona Investment Fund (Interval Fund) 5B는 Retail LP 대상 분기 환매 가능 상품</strong>. 시장 위축 시 환매 압력 + 미들마켓 자산 유동성 부족으로 NAV 변동성. 기관 LP는 Interval Fund 분리 운용 여부 확인 필요." },
+  { gp:"TPG NewQuest", flag:"info", title:"China Sec. 거래 위축 (지정학·규제)", body:"<strong>2022~2024 China 세컨더리 거래 50%+ 감소</strong> (지정학 리스크·규제 강화). TPG NewQuest는 India·SEA로 다각화 진행 중. Asia LP는 NewQuest 펀드의 지역 비중 변화 모니터링 필요." },
+  { gp:"Hamilton Lane", flag:"info", title:"Tokenization(HL Tokens) 신상품 규제 리스크", body:"<strong>2023~ Securitize와 PE 토큰화 (Hamilton Lane Tokens) 출시</strong>. 미국 SEC·EU MiCA 규제 진화에 따른 향후 운영 리스크. 토큰화 자산의 secondary trading 활성화는 아직 초기 단계." }
+];
+const riskFlagMap = { red:{cls:"red flag-red",label:"중대 리스크"}, yellow:{cls:"yellow flag-yellow",label:"주의"}, info:{cls:"info flag-info",label:"참고"} };
+document.getElementById('riskList').innerHTML = riskData.map(d=>{ const f=riskFlagMap[d.flag]; return `<div class="risk-card ${d.flag}"><div class="risk-head"><div class="risk-gp">${d.gp}</div><span class="risk-flag ${f.cls.split(' ')[1]}">${f.label}</span></div><div class="risk-body"><strong>${d.title}</strong><br>${d.body}</div></div>`; }).join('');
+
+// ============= ⑨ Detail Cards =============
+function buildCard(p) {
+  const exp = exposureData[p.rank];
+  const cardCls = exp ? 'card invested' : 'card';
+  const expHTML = exp ? `<div class="card-section"><div class="label" style="color:#b7791f;">🏦 자사 익스포저 (${expTypeMap[exp.type].label})</div><div class="content">${exp.funds.map(f=>`<div style="margin-bottom:3px;"><strong>${f.name}</strong> <span class="exp-tag indirect" style="font-size:8.5px;">${f.cat}</span><br>약정 <strong style="color:#b7791f;">${f.commit.toFixed(1)}억</strong> / 잔액 ${f.balance.toFixed(1)}억</div>`).join('')}</div></div>` : '';
+  const dealsHTML = p.deals.map(d=>`<li><div><span class="deal-name">${d.name}</span> <span class="deal-meta">(${d.year})</span><br><span class="deal-meta">${d.note}</span></div></li>`).join('');
+  const aumDisp = p.aumDisplay;
+  return `<div class="${cardCls}" data-rank="${p.rank}" data-tier="${p.tier}" data-invested="${exp?'1':'0'}" data-name="${p.name.toLowerCase()} ${p.nameEn.toLowerCase()}">
+    <div class="card-header">
+      <div><span class="card-rank">#${p.rank}</span><span class="card-name">${p.name}</span><div class="card-name-en">${p.nameEn}</div></div>
+      <div class="card-aum"><div class="num">${aumDisp.split(' ')[0]}</div><div class="unit">${aumDisp.split(' ').slice(1).join(' ')}</div></div>
+    </div>
+    <div class="card-section"><div class="label">Secondary AUM 노트</div><div class="content">${p.aumNote}</div></div>
+    <div class="card-section"><div class="label">창립자 / 설립연도</div><div class="content">${p.founder}</div></div>
+    <div class="card-section"><div class="label">CEO / 대표</div><div class="content"><strong>${p.ceo}</strong></div></div>
+    <div class="card-section"><div class="label">핵심 임원</div><div class="content">${p.keyPeople.join(' · ')}</div></div>
+    <div class="card-section"><div class="label">대표 펀드/거래 (최근·역사적)</div><div class="content"><ul class="deals-list">${dealsHTML}</ul></div></div>
+    ${expHTML}
+  </div>`;
+}
+const cardGrid = document.getElementById('cardGrid');
+function renderCards(list) { cardGrid.innerHTML = list.map(buildCard).join(''); }
+renderCards(peData);
+
+const searchInput = document.getElementById('searchInput');
+const sortSelect = document.getElementById('sortSelect');
+let currentTier = 'all';
+function applyFilters() {
+  let filtered = peData.slice();
+  if (currentTier === 'invested') filtered = filtered.filter(p => exposureData[p.rank]);
+  else if (currentTier !== 'all') filtered = filtered.filter(p => p.tier === currentTier);
+  const q = searchInput.value.toLowerCase().trim();
+  if (q) filtered = filtered.filter(p => {
+    const hay = `${p.name} ${p.nameEn} ${p.founder} ${p.ceo} ${p.deals.map(d=>d.name).join(' ')}`.toLowerCase();
+    return hay.includes(q);
+  });
+  const sortBy = sortSelect.value;
+  if (sortBy === 'aum') filtered.sort((a,b)=>b.aum-a.aum);
+  else if (sortBy === 'exposure') filtered.sort((a,b)=>totalCommit(b.rank)-totalCommit(a.rank));
+  else if (sortBy === 'name') filtered.sort((a,b)=>a.name.localeCompare(b.name));
+  else filtered.sort((a,b)=>a.rank-b.rank);
+  renderCards(filtered);
+}
+searchInput.addEventListener('input', applyFilters);
+sortSelect.addEventListener('change', applyFilters);
+document.querySelectorAll('.tier-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tier-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentTier = tab.dataset.tier;
+    applyFilters();
+  });
+});
+</script>
+</body>
+</html>
